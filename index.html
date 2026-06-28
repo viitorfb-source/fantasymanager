@@ -130,14 +130,14 @@ textarea:focus,select:focus,input:focus{outline:none}
   </div>
 </div>
 <div class="sport-bar">
-  <button class="sport-btn football active" onclick="switchSport('football')"><img src="${LOGO_MINERS}" onerror="this.style.display='none'"> PARANÁ MINERS</button>
-  <button class="sport-btn basketball" onclick="switchSport('basketball')"><img src="${LOGO_RATS}" onerror="this.style.display='none'"> MG RATS</button>
+  <button class="sport-btn football active" onclick="switchSport('football')" id="btn-football">🏈 PARANÁ MINERS</button>
+  <button class="sport-btn basketball" onclick="switchSport('basketball')" id="btn-basketball">🏀 MG RATS</button>
 </div>
 
 <!-- ===== FOOTBALL ===== -->
 <div id="football-panel" class="panel active miners-theme">
   <div class="header">
-    <div class="logo-circle miners"><img src="${LOGO_MINERS}" alt="Paraná Miners" onerror="this.parentElement.textContent='⛏️'"></div>
+    <div class="logo-circle miners" id="logo-miners"><span>⛏️</span></div>
     <div class="header-text">
       <h1>PARANÁ MINERS</h1>
       <p>Fantasy Football · Sleeper + Fleaflicker</p>
@@ -320,7 +320,7 @@ textarea:focus,select:focus,input:focus{outline:none}
 <!-- ===== BASKETBALL ===== -->
 <div id="basketball-panel" class="panel rats-theme">
   <div class="header">
-    <div class="logo-circle rats"><img src="${LOGO_RATS}" alt="MG Rats" onerror="this.parentElement.textContent='🐀'"></div>
+    <div class="logo-circle rats" id="logo-rats"><span>🐀</span></div>
     <div class="header-text">
       <h1>MINAS GERAIS RATS</h1>
       <p>Fantasy Basketball · ESPN + Fleaflicker</p>
@@ -439,7 +439,10 @@ const DRIVE_FILE_NAME = 'fantasyManager_dados.json';
 const SLEEPER_USER = 'vitorfrb';
 const FFL_USER_ID = 1279129;
 const ESPN_BB_LEAGUE_ID = 61189009;
-const ESPN_BB_SEASON = 2025;
+const LOGO_MINERS = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Paran%C3%A1%20Miners.jpeg';
+const LOGO_RATS   = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Minas%20Gerais%20Rats.jpg';
+const CORS_PROXY  = 'https://corsproxy.io/?url=';
+const ESPN_BB_SEASON = 2026;
 const FFL_BASE = 'https://www.fleaflicker.com/api';
 
 let state = {
@@ -464,6 +467,32 @@ const FFL_PRESET_LEAGUES = {
     { id:'ffl_nba_26190', ffl_id:26190, ffl_team_id:null, name:'Liga NBA Fleaflicker (Dynasty)', platform:'fleaflicker', sport:'nba', type:'dynasty', scoring:'h2h-points', teams:null },
   ]
 };
+
+function applyLogos() {
+  const setLogo = (elId, src, fallback) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'width:64px;height:64px;object-fit:contain;border-radius:50%';
+    img.onerror = () => { el.innerHTML = fallback; };
+    el.innerHTML = '';
+    el.appendChild(img);
+  };
+  const setBtnLogo = (elId, src, text) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'width:26px;height:26px;object-fit:contain;border-radius:50%;vertical-align:middle;margin-right:6px';
+    img.onerror = () => {};
+    el.insertBefore(img, el.firstChild);
+  };
+  setLogo('logo-miners', LOGO_MINERS, '⛏️');
+  setLogo('logo-rats', LOGO_RATS, '🐀');
+  setBtnLogo('btn-football', LOGO_MINERS, '🏈');
+  setBtnLogo('btn-basketball', LOGO_RATS, '🏀');
+}
 
 // ── GOOGLE AUTH & DRIVE ───────────────────────────────────────────────
 let googleToken = null;
@@ -584,6 +613,7 @@ function setDriveStatus(msg) {
 
 // ── INIT ──────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  applyLogos();
   loadState();
   fetchSleeperLeagues();
   fetchFleaflickerLeagues();
