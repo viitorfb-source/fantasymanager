@@ -228,6 +228,7 @@ textarea,select,input[type=text],input[type=number],input[type=password]{width:1
   <div class="tabs" id="tabs-fb">
     <div class="tab active" onclick="setTab('fb','dash')">Dashboard</div>
     <div class="tab" onclick="setTab('fb','ligas')">Ligas</div>
+    <div class="tab" onclick="setTab('fb','roster')">Meu Roster</div>
     <div class="tab" onclick="setTab('fb','rankings')">Rankings</div>
     <div class="tab" onclick="setTab('fb','lesoes')">Lesões</div>
     <div class="tab" onclick="setTab('fb','bye')">Bye Weeks</div>
@@ -247,6 +248,16 @@ textarea,select,input[type=text],input[type=number],input[type=password]{width:1
   <div class="tc active" id="fb-dash">
     <div class="lbl">Visão geral das ligas</div>
     <div id="fb-dash-content"><div class="no-data">Carregando…</div></div>
+  </div>
+
+  <!-- MEUroster -->
+  <div class="tc" id="fb-roster">
+    <div class="card">
+      <h3>👥 Meu Roster — todas as ligas</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:10px">Busca automática do Sleeper. Ligas Fleaflicker: insira manualmente.</p>
+      <button class="btn btn-primary" onclick="fetchAllRosters()">Carregar elencos ↗</button>
+    </div>
+    <div id="all-rosters"><div class="no-data">Clique em "Carregar elencos".</div></div>
   </div>
 
   <!-- LIGAS -->
@@ -915,7 +926,7 @@ function setSport(s){
   document.getElementById('btn-'+s).classList.add('active');
 }
 
-const FB_TABS=['dash','ligas','rankings','lesoes','bye','adp','ktc','waiver','startsit','trade','draft','playoff','comparar','ia','hist'];
+const FB_TABS=['dash','ligas','roster','rankings','lesoes','bye','adp','ktc','waiver','startsit','trade','draft','playoff','comparar','ia','hist'];
 const BB_TABS=['dash','ligas','stream','stats','startsit','waiver','trade','draft','ia','hist'];
 
 function setTab(sp,name){
@@ -1147,7 +1158,215 @@ async function renderByeCalendar(){
     </div>`;
 }
 
-// ══ ADP ═════════════════════════════════════════════════════════════
+// ══ ROSTERS ══════════════════════════════════════════════════════════
+let cachedRosters = {}; // leagueId -> players array
+
+async function fetchAllRosters() {
+  const el = document.getElementById('all-rosters');
+  el.innerHTML = '<div class="sbar gold"><span class="spinner"></span><span>Carregando elencos do Sleeper…</span></div>';
+
+  try {
+    // Get all NFL players once
+    const allPlayers = await fetch('https://api.sleeper.app/v1/players/nfl').then(r => r.json());
+    const userRes = await fetch(`https://api.sleeper.app/v1/user/${SLEEPER_USER}`).then(r => r.json());
+
+    let html = '';
+    for (const lg of S.sleeperLeagues) {
+      try {
+        const lgId = lg.league_id || lg.id;
+        const [rosters, users] = await Promise.all([
+          fetch(`https://api.sleeper.app/v1/league/${lgId}/rosters`).then(r => r.json()),
+          fetch(`https://api.sleeper.app/v1/league/${lgId}/users`).then(r => r.json())
+        ]);
+
+        const myUser = users.find(u => u.display_name?.toLowerCase() === SLEEPER_USER.toLowerCase());
+        if (!myUser) continue;
+        const myRoster = rosters.find(r => r.owner_id === myUser.user_id);
+        if (!myRoster) continue;
+
+        const playerIds = [...(myRoster.players || [])];
+        const starters = new Set(myRoster.starters || []);
+
+        const players = playerIds.map(id => {
+          const p = allPlayers[id];
+          if (!p) return null;
+          return {
+            id, name: p.full_name || `${p.first_name} ${p.last_name}`,
+            pos: p.fantasy_positions?.[0] || '?',
+            team: p.team || 'FA',
+            injury: p.injury_status || null,
+            isStarter: starters.has(id),
+            age: p.age
+          };
+        }).filter(Boolean);
+
+        // Cache for use in analyses
+        cachedRosters[lgId] = players;
+
+        // Sort: starters first, then by position
+        const posOrder = {QB:0,RB:1,WR:2,TE:3,K:4,DEF:5};
+        players.sort((a,b) => {
+          if(a.isStarter !== b.isStarter) return a.isStarter ? -1 : 1;
+          return (posOrder[a.pos]||9) - (posOrder[b.pos]||9);
+        });
+
+        const lgData = S.fb.leagues.find(l => l.id === lgId) || { name: lg.name, scoring: '?', type: '?' };
+        html += `
+          <div class="card" style="margin-bottom:12px">
+            <h3>🏈 ${lgData.name || lg.name}</h3>
+            <div style="font-size:10px;opacity:.4;margin-bottom:10px">${lgData.type?.toUpperCase()} · ${lgData.scoring?.toUpperCase()} · ${players.length} jogadores</div>
+            <div style="margin-bottom:6px">
+              <span style="font-size:10px;font-weight:700;color:var(--gold)">TITULARES</span>
+            </div>
+            ${players.filter(p => p.isStarter).map(p => renderPlayerRow(p)).join('')}
+            <div style="margin:10px 0 6px">
+              <span style="font-size:10px;font-weight:700;opacity:.4">BANCO</span>
+            </div>
+            ${players.filter(p => !p.isStarter).map(p => renderPlayerRow(p)).join('')}
+          </div>`;
+      } catch(e) {}
+    }
+
+    // Fleaflicker leagues manual entry
+    const fflLeagues = S.fb.leagues.filter(l => l.platform === 'fleaflicker');
+    if (fflLeagues.length) {
+      html += `<div class="card">
+        <h3>⛏️ Ligas Fleaflicker — inserir manualmente</h3>
+        <p style="font-size:11px;opacity:.5;margin-bottom:10px">O Fleaflicker bloqueia acesso direto. Insira seus jogadores para cada liga:</p>
+        ${fflLeagues.map(lg => `
+          <div style="margin-bottom:12px">
+            <div class="lbl">${lg.name}</div>
+            <textarea id="ffl-roster-${lg.id}" rows="4" placeholder="Um jogador por linha. Ex:&#10;Patrick Mahomes&#10;Bijan Robinson&#10;CeeDee Lamb"></textarea>
+            <button class="btn-sm btn-primary fb-panel" onclick="saveFflRoster('${lg.id}')" style="background:var(--gold);color:#000;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:700">Salvar elenco</button>
+          </div>`).join('')}
+      </div>`;
+    }
+
+    el.innerHTML = html || '<div class="no-data">Nenhum elenco encontrado.</div>';
+
+    // Load saved Fleaflicker rosters
+    fflLeagues.forEach(lg => {
+      const saved = S.fflRosters?.[lg.id];
+      const textarea = document.getElementById(`ffl-roster-${lg.id}`);
+      if (saved && textarea) textarea.value = saved;
+    });
+
+  } catch(e) {
+    el.innerHTML = '<div class="no-data">Erro ao carregar elencos. Verifique sua conexão.</div>';
+  }
+}
+
+function renderPlayerRow(p) {
+  const injClass = p.injury === 'Out' || p.injury === 'IR' ? 'inj-out' : p.injury === 'Questionable' ? 'inj-q' : '';
+  return `<div class="player-row">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="pos-${p.pos}">${p.pos}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600">${p.name}</div>
+        <div style="font-size:10px;opacity:.4">${p.team}${p.age ? ' · ' + p.age + ' anos' : ''}</div>
+      </div>
+    </div>
+    ${p.injury ? `<span class="inj-badge ${injClass}">${p.injury}</span>` : ''}
+  </div>`;
+}
+
+function saveFflRoster(lgId) {
+  const textarea = document.getElementById(`ffl-roster-${lgId}`);
+  if (!textarea) return;
+  if (!S.fflRosters) S.fflRosters = {};
+  S.fflRosters[lgId] = textarea.value;
+  save();
+  const btn = textarea.nextElementSibling;
+  if (btn) { btn.textContent = '✓ Salvo'; setTimeout(() => btn.textContent = 'Salvar elenco', 2000); }
+}
+
+async function getRosterContext(lgId) {
+  // Try cached Sleeper roster first
+  if (cachedRosters[lgId]) {
+    const players = cachedRosters[lgId];
+    const starters = players.filter(p => p.isStarter).map(p => `${p.pos}: ${p.name} (${p.team})`).join(', ');
+    const bench = players.filter(p => !p.isStarter).map(p => `${p.pos}: ${p.name} (${p.team})`).join(', ');
+    return `\n\n--- MEU ROSTER ---\nTITULARES: ${starters}\nBANCO: ${bench}`;
+  }
+  // Try saved Fleaflicker roster
+  if (S.fflRosters?.[lgId]) {
+    return `\n\n--- MEU ROSTER (Fleaflicker) ---\n${S.fflRosters[lgId]}`;
+  }
+  // Try to fetch if not cached
+  try {
+    const allPlayers = await fetch('https://api.sleeper.app/v1/players/nfl').then(r => r.json());
+    const userRes = await fetch(`https://api.sleeper.app/v1/user/${SLEEPER_USER}`).then(r => r.json());
+    const [rosters, users] = await Promise.all([
+      fetch(`https://api.sleeper.app/v1/league/${lgId}/rosters`).then(r => r.json()),
+      fetch(`https://api.sleeper.app/v1/league/${lgId}/users`).then(r => r.json())
+    ]);
+    const myUser = users.find(u => u.display_name?.toLowerCase() === SLEEPER_USER.toLowerCase());
+    const myRoster = rosters?.find(r => r.owner_id === myUser?.user_id);
+    if (!myRoster) return '';
+    const players = (myRoster.players || []).map(id => {
+      const p = allPlayers[id];
+      if (!p) return null;
+      return { id, name: p.full_name, pos: p.fantasy_positions?.[0]||'?', team: p.team||'FA', isStarter: (myRoster.starters||[]).includes(id) };
+    }).filter(Boolean);
+    cachedRosters[lgId] = players;
+    const starters = players.filter(p => p.isStarter).map(p => `${p.pos}: ${p.name} (${p.team})`).join(', ');
+    const bench = players.filter(p => !p.isStarter).map(p => `${p.pos}: ${p.name} (${p.team})`).join(', ');
+    return `\n\n--- MEU ROSTER ---\nTITULARES: ${starters}\nBANCO: ${bench}`;
+  } catch(e) { return ''; }
+}
+
+// ══ ADP REAL (Sleeper ADP) ═══════════════════════════════════════════
+async function fetchADP(){
+  const el = document.getElementById('adp-results');
+  const format = document.getElementById('adp-format').value;
+  const teams = document.getElementById('adp-teams').value;
+  el.innerHTML = '<div class="sbar gold"><span class="spinner"></span><span>Buscando ADP real do Sleeper…</span></div>';
+  try {
+    // Sleeper ADP endpoint
+    const scoring = format === 'ppr' ? 'ppr' : format === 'half-ppr' ? 'half_ppr' : 'std';
+    const url = `https://api.sleeper.app/v1/stats/nfl/player/2025?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE&order_by=adp_${scoring}`;
+    const [statsData, allPlayers] = await Promise.all([
+      fetch(url).then(r => r.json()),
+      fetch('https://api.sleeper.app/v1/players/nfl').then(r => r.json())
+    ]);
+
+    if (!statsData || !Object.keys(statsData).length) throw new Error('no data');
+
+    adpData = Object.entries(statsData)
+      .map(([id, stats]) => {
+        const p = allPlayers[id];
+        if (!p || !p.fantasy_positions?.length) return null;
+        const adp = stats[`adp_${scoring}`] || stats.adp_half_ppr || stats.adp_ppr || stats.adp_std || 999;
+        return {
+          rank: Math.round(adp),
+          adp: adp.toFixed(1),
+          name: p.full_name || `${p.first_name} ${p.last_name}`,
+          team: p.team || 'FA',
+          position: p.fantasy_positions[0],
+          player_id: id
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank)
+      .map((p, i) => ({ ...p, rank: i + 1 }));
+
+    renderADPList();
+  } catch(e) {
+    // Fallback to AI query
+    el.innerHTML = `
+      <div class="card">
+        <h3>📈 ADP — Consulta via IA</h3>
+        <p style="font-size:11px;opacity:.5;margin-bottom:8px">Dados ADP não disponíveis. Consulte via IA:</p>
+        <input type="text" id="adp-player-q" placeholder="Ex: Bijan Robinson, CeeDee Lamb"/>
+        <div class="grid2">
+          <select id="adp-fmt-q"><option value="Half PPR">Half PPR</option><option value="PPR">PPR</option><option value="Standard">Standard</option></select>
+          <select id="adp-teams-q"><option value="12">12 times</option><option value="10">10 times</option><option value="14">14 times</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="doADPQuery()">Consultar ADP com IA ↗</button>
+        <div class="ai-box" id="adp-ai"></div>
+      </div>`;
+  }
+}
 
 async function fetchADP(){
   const el = document.getElementById('adp-results');
@@ -1462,11 +1681,11 @@ async function callAI(prompt, respId){
   el.style.display='block';el.classList.add('ai-loading');
   el.innerHTML='<span class="spinner" style="display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:5px"></span> Analisando…';
   try{
-    const res=await fetch('/api/chat',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYS,messages:[{role:'user',content:prompt}]})
-});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYS,messages:[{role:'user',content:prompt}]})
+    });
     const d=await res.json();
     const txt=d.content?.find(b=>b.type==='text')?.text||'Sem resposta.';
     el.classList.remove('ai-loading');el.innerHTML=txt;return txt;
@@ -1475,36 +1694,42 @@ async function callAI(prompt, respId){
 
 // ══ ANALYSIS FUNCTIONS ═══════════════════════════════════════════════
 async function doStartSit(){
-  const lg=getLg('fb',document.getElementById('ss-lg').value);
-  const players=document.getElementById('ss-players').value;
-  const ctx=document.getElementById('ss-ctx').value;
-  const sc=document.getElementById('ss-sc').value;
+  const lgId = document.getElementById('ss-lg').value;
+  const lg = getLg('fb', lgId);
+  const players = document.getElementById('ss-players').value;
+  const ctx = document.getElementById('ss-ctx').value;
+  const sc = document.getElementById('ss-sc').value;
   if(!players.trim()){alert('Insira os jogadores.');return;}
-  const prompt=`START/SIT — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nJogadores: ${players}\nMatchup: ${ctx||'—'}${getRkCtx(players)}`;
+  const rosterCtx = await getRosterContext(lgId);
+  const prompt=`START/SIT — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nJogadores em dúvida: ${players}\nMatchup: ${ctx||'—'}${rosterCtx}${getRkCtx(players)}`;
   const ans=await callAI(prompt,'ss-resp');
   addHist('fb','Start/Sit',players,ans);
 }
 async function doWaiver(){
-  const lg=getLg('fb',document.getElementById('wv-lg').value);
+  const lgId = document.getElementById('wv-lg').value;
+  const lg = getLg('fb', lgId);
   const add=document.getElementById('wv-add').value;
   const drop=document.getElementById('wv-drop').value;
   const ctx=document.getElementById('wv-ctx').value;
   const sc=document.getElementById('wv-sc').value;
   if(!add.trim()){alert('Insira o jogador.');return;}
-  const prompt=`WAIVER — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nAdicionar: ${add} | Dropar: ${drop||'—'}\nContexto: ${ctx||'—'}${getRkCtx(add+','+drop)}`;
+  const rosterCtx = await getRosterContext(lgId);
+  const prompt=`WAIVER — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nAdicionar: ${add} | Dropar: ${drop||'—'}\nContexto: ${ctx||'—'}${rosterCtx}${getRkCtx(add+','+drop)}`;
   const ans=await callAI(prompt,'wv-resp');
   addHist('fb','Waiver',add,ans);
 }
 async function doTrade(sp){
   if(sp==='fb'){
-    const lg=getLg('fb',document.getElementById('tr-lg').value);
+    const lgId = document.getElementById('tr-lg').value;
+    const lg = getLg('fb', lgId);
     const rec=document.getElementById('tr-rec').value;
     const give=document.getElementById('tr-give').value;
     const ctx=document.getElementById('tr-ctx').value;
     const sc=document.getElementById('tr-sc').value;
     const type=document.getElementById('tr-type').value;
     if(!rec||!give){alert('Preencha os dois lados.');return;}
-    const prompt=`TRADE — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\nRECEBO: ${rec}\nDOU: ${give}\nContexto: ${ctx||'—'}${getRkCtx(rec+','+give)}`;
+    const rosterCtx = await getRosterContext(lgId);
+    const prompt=`TRADE — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\nRECEBO: ${rec}\nDOU: ${give}\nContexto: ${ctx||'—'}${rosterCtx}${getRkCtx(rec+','+give)}`;
     const ans=await callAI(prompt,'tr-resp');
     addHist('fb','Trade',`${rec} / ${give}`,ans);
   }else{
@@ -1545,12 +1770,14 @@ async function doDraft(sp){
 }
 async function doFreeAI(sp){
   if(sp==='fb'){
-    const lg=getLg('fb',document.getElementById('ia-fb-lg').value);
+    const lgId = document.getElementById('ia-fb-lg').value;
+    const lg = getLg('fb', lgId);
     const q=document.getElementById('ia-fb-q').value.trim();
     const sc=document.getElementById('ia-fb-sc').value;
     const type=document.getElementById('ia-fb-type').value;
     if(!q){alert('Descreva a situação.');return;}
-    const ans=await callAI(`Liga: ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\n\n${q}${getRkCtx(q)}`,'ia-fb-resp');
+    const rosterCtx = await getRosterContext(lgId);
+    const ans=await callAI(`Liga: ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\n\n${q}${rosterCtx}${getRkCtx(q)}`,'ia-fb-resp');
     addHist('fb','Análise livre',q,ans);
   }else{
     const lg=getLg('bb',document.getElementById('ia-bb-lg').value);
