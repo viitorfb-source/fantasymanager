@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fantasy Manager VB</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏️</text></svg>">
 <script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -743,21 +744,23 @@ async function fetchNBASchedule() {
     const end = new Date(start);
     end.setDate(start.getDate() + 6); // Saturday
 
-    const fmt = d => d.toISOString().split('T')[0];
-    const url = `https://www.balldontlie.io/api/v1/games?start_date=${fmt(start)}&end_date=${fmt(end)}&per_page=100`;
+    const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const weekLabel = `${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
+
+    // Use ESPN API for NBA schedule — no CORS, no auth needed
+    const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${fmt(start)}-${fmt(end)}&limit=100`;
     const data = await fetch(url).then(r => r.json());
 
-    // Count games per team
     const counts = {};
-    (data.data || []).forEach(g => {
-      const h = g.home_team?.abbreviation;
-      const v = g.visitor_team?.abbreviation;
-      if(h) counts[h] = (counts[h] || 0) + 1;
-      if(v) counts[v] = (counts[v] || 0) + 1;
+    (data.events || []).forEach(g => {
+      g.competitions?.[0]?.competitors?.forEach(c => {
+        const abbr = c.team?.abbreviation;
+        if(abbr) counts[abbr] = (counts[abbr] || 0) + 1;
+      });
     });
 
     nbaGamesThisWeek = counts;
-    return { counts, week: `${fmt(start)} a ${fmt(end)}`, total: data.data?.length || 0 };
+    return { counts, week: weekLabel, total: data.events?.length || 0 };
   } catch(e) {
     return null;
   }
