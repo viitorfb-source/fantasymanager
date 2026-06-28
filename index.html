@@ -661,7 +661,7 @@ textarea,select,input[type=text],input[type=number],input[type=password]{width:1
 
 <script>
 // ══ CONSTANTS ════════════════════════════════════════════════════════
-const API_KEY = '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';
+const API_KEY = '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';
 const GCLIENT = '941630133751-li1lm82bhcur6cu8ju1ersleas5965t7.apps.googleusercontent.com';
 const DRIVE_FILE = 'fantasyManagerVB_dados.json';
 const SLEEPER_USER = 'vitorfrb';
@@ -676,21 +676,92 @@ const FFL_FB = [
 const FFL_BB = [{id:'ffl_bb_26190',name:'Liga NBA Fleaflicker',platform:'fleaflicker',type:'dynasty',scoring:'h2h-points',teams:null}];
 const ESPN_BB = {id:'espn_61189009',name:'Liga NBA ESPN',platform:'espn',type:'redraft',scoring:'h2h-points',teams:12};
 
-// NFL bye weeks 2025 (approximate)
-const NFL_BYES = {
-  'ARI':7,'ATL':11,'BAL':14,'BUF':12,'CAR':11,'CHI':7,'CIN':12,'CLE':10,
-  'DAL':7,'DEN':14,'DET':5,'GB':13,'HOU':14,'IND':14,'JAC':12,'KC':6,
-  'LAC':5,'LAR':6,'LV':10,'MIA':6,'MIN':6,'NE':14,'NO':11,'NYG':11,
-  'NYJ':12,'PHI':5,'PIT':9,'SEA':9,'SF':9,'TB':11,'TEN':12,'WAS':14
-};
+// ══ NFL SCHEDULE (ESPN API) ═══════════════════════════════════════════
+let nflScheduleData = {};
+let currentNFLWeek = 1;
 
-// NBA schedule (games per week for streaming — mock current week)
-const NBA_GAMES_THIS_WEEK = {
-  'LAL':4,'GSW':4,'BOS':3,'MIL':4,'DEN':3,'PHX':4,'MIA':3,'PHI':3,
-  'BKN':4,'NYK':3,'CHI':3,'CLE':4,'ATL':3,'TOR':3,'IND':4,'DET':3,
-  'MEM':4,'NOP':3,'SAS':4,'OKC':4,'POR':3,'SAC':3,'MIN':4,'UTA':3,
-  'ORL':4,'WAS':3,'CHA':4,'DAL':4,'HOU':4,'LAC':3
-};
+async function fetchNFLSchedule() {
+  try {
+    // Get current week
+    const scoreboardRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard');
+    const scoreboard = await scoreboardRes.json();
+    const week = scoreboard?.week?.number || 1;
+    const season = scoreboard?.season?.year || 2025;
+    currentNFLWeek = week;
+
+    // Get full season schedule to build bye weeks
+    const schedRes = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${week}&limit=16`);
+    const schedData = await schedRes.json();
+
+    // Build this week's games
+    const games = schedData?.events || [];
+    const teamsPlaying = new Set();
+    games.forEach(g => {
+      g.competitions?.[0]?.competitors?.forEach(c => {
+        teamsPlaying.add(c.team?.abbreviation);
+      });
+    });
+
+    // All NFL teams
+    const allTeams = ['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAC','KC','LAC','LAR','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS'];
+
+    // Teams on bye = not playing this week
+    nflScheduleData = {
+      week,
+      season,
+      byeTeams: allTeams.filter(t => !teamsPlaying.has(t)),
+      playingTeams: [...teamsPlaying],
+      games: games.map(g => ({
+        home: g.competitions?.[0]?.competitors?.find(c=>c.homeAway==='home')?.team?.abbreviation,
+        away: g.competitions?.[0]?.competitors?.find(c=>c.homeAway==='away')?.team?.abbreviation,
+        date: g.date
+      }))
+    };
+    return nflScheduleData;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function fetchNFLDefenseRankings() {
+  try {
+    // Get defense stats vs position via ESPN
+    const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/standings?season=2025');
+    const data = await res.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+// ══ NBA SCHEDULE (balldontlie.io) ════════════════════════════════════
+let nbaGamesThisWeek = {};
+
+async function fetchNBASchedule() {
+  try {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() - today.getDay()); // Sunday
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6); // Saturday
+
+    const fmt = d => d.toISOString().split('T')[0];
+    const url = `https://www.balldontlie.io/api/v1/games?start_date=${fmt(start)}&end_date=${fmt(end)}&per_page=100`;
+    const data = await fetch(url).then(r => r.json());
+
+    // Count games per team
+    const counts = {};
+    (data.data || []).forEach(g => {
+      const h = g.home_team?.abbreviation;
+      const v = g.visitor_team?.abbreviation;
+      if(h) counts[h] = (counts[h] || 0) + 1;
+      if(v) counts[v] = (counts[v] || 0) + 1;
+    });
+
+    nbaGamesThisWeek = counts;
+    return { counts, week: `${fmt(start)} a ${fmt(end)}`, total: data.data?.length || 0 };
+  } catch(e) {
+    return null;
+  }
+}
 
 // ══ STATE ════════════════════════════════════════════════════════════
 let S = {
@@ -703,13 +774,20 @@ let S = {
 };
 let gToken=null, driveId=null;
 let rkIdx=0, rkFilter='ALL';
-let adpData=[], ktcData=[];
+let adpData = [], ktcData = [];
 
 // ══ INIT ═════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   initLogos();
   loadLS();
   fetchSleeper();
+  fetchNFLSchedule().then(data => {
+    if(data) {
+      const el = document.getElementById('bar-ffl');
+      if(el) el.innerHTML = `<span>✓</span><span>NFL Semana ${data.week} — ${data.byeTeams.length} times de bye</span>`;
+    }
+  });
+  fetchNBASchedule();
   renderAll();
 });
 
@@ -819,7 +897,7 @@ async function fetchSleeper(){
     save(); renderFbLg(); populateSels();
     st.textContent=`${lgs.length} liga(s) Sleeper ✓`;
     bar.className='sbar green'; bar.querySelector('.spinner')?.remove();
-    renderDashFb();
+    renderDashFb(); // re-render dashboard after leagues load
   }catch(e){
     st.textContent='Sleeper: erro. Adicione manualmente.';
     bar.className='sbar red';
@@ -1002,60 +1080,148 @@ async function fetchInjuries(){
   }catch(e){el.innerHTML='<div class="no-data">Erro ao buscar lesões.</div>';}
 }
 
-// ══ BYE WEEKS ═══════════════════════════════════════════════════════
-function renderByeCalendar(){
-  const input=document.getElementById('bye-players').value;
-  const teams=input.split(',').map(t=>t.trim().toUpperCase()).filter(Boolean);
-  if(!teams.length){alert('Insira os times dos seus jogadores.');return;}
-  const el=document.getElementById('bye-calendar');
-  const weeks=[5,6,7,8,9,10,11,12,13,14];
-  const byeCounts={};
-  weeks.forEach(w=>byeCounts[w]=teams.filter(t=>NFL_BYES[t]===w).length);
-  const max=Math.max(...Object.values(byeCounts));
-  el.innerHTML=`
+async function renderByeCalendar(){
+  const input = document.getElementById('bye-players').value;
+  const teams = input.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+  if(!teams.length){ alert('Insira os times dos seus jogadores.'); return; }
+
+  const el = document.getElementById('bye-calendar');
+  el.innerHTML = '<div class="sbar gold"><span class="spinner"></span><span>Buscando schedule NFL em tempo real…</span></div>';
+
+  // Fetch all weeks (5-18) to find bye weeks per team
+  const byeMap = {};
+  try {
+    const promises = [];
+    for(let w = 1; w <= 18; w++) {
+      promises.push(
+        fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week=${w}&limit=16`)
+          .then(r => r.json())
+          .then(data => ({ week: w, events: data.events || [] }))
+          .catch(() => ({ week: w, events: [] }))
+      );
+    }
+    const allWeeks = await Promise.all(promises);
+    const allTeams = ['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAC','KC','LAC','LAR','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS'];
+
+    allWeeks.forEach(({ week, events }) => {
+      const playing = new Set();
+      events.forEach(g => g.competitions?.[0]?.competitors?.forEach(c => playing.add(c.team?.abbreviation)));
+      allTeams.forEach(t => { if(!playing.has(t) && events.length > 0) byeMap[t] = week; });
+    });
+  } catch(e) {}
+
+  const weeks = [5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+  const byeCounts = {};
+  weeks.forEach(w => byeCounts[w] = teams.filter(t => byeMap[t] === w).length);
+
+  el.innerHTML = `
     <div class="card">
-      <h3>📅 Bye weeks — suas semanas críticas</h3>
-      <div class="bye-grid">
-        ${weeks.map(w=>`<div class="bye-header">Sem ${w}</div>`).join('')}
-        ${weeks.map(w=>{
-          const cnt=byeCounts[w];
-          const cls=cnt>=3?'bye-crit':cnt>=2?'bye-warn':'bye-ok';
-          const tms=teams.filter(t=>NFL_BYES[t]===w);
-          return`<div class="bye-week ${cls}" title="${tms.join(', ')}">${cnt>0?cnt+' 🚨':'-'}</div>`;
+      <h3>📅 Bye Weeks — dados reais ESPN ${nflScheduleData?.season || 2025}</h3>
+      <p style="font-size:10px;opacity:.4;margin-bottom:10px">Semana atual: ${currentNFLWeek}</p>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:10px;margin-bottom:10px">
+        ${weeks.map(w => {
+          const cnt = byeCounts[w];
+          const myTeams = teams.filter(t => byeMap[t] === w);
+          const cls = cnt >= 3 ? 'bye-crit' : cnt >= 2 ? 'bye-warn' : 'bye-ok';
+          const isCurrent = w === currentNFLWeek;
+          return `<div class="bye-week ${cls}" style="${isCurrent?'outline:2px solid var(--gold)':''}" title="${myTeams.join(', ')||'sem folgas'}">
+            <div style="font-size:9px;opacity:.5">Sem ${w}</div>
+            <div style="font-size:14px;font-weight:900">${cnt || '—'}</div>
+          </div>`;
         }).join('')}
       </div>
-      <div style="margin-top:12px">
-      ${weeks.map(w=>{
-        const tms=teams.filter(t=>NFL_BYES[t]===w);
-        if(!tms.length)return'';
-        const cls=tms.length>=3?'inj-out':tms.length>=2?'inj-q':'diff-n';
-        return`<div class="player-row"><span style="font-size:11px;opacity:.5">Sem ${w}</span><div>${tms.map(t=>`<span class="badge b-redraft" style="margin-left:4px">${t}</span>`).join('')}</div></div>`;
+      ${weeks.map(w => {
+        const myTeams = teams.filter(t => byeMap[t] === w);
+        if(!myTeams.length) return '';
+        const cls = myTeams.length >= 3 ? 'inj-out' : myTeams.length >= 2 ? 'inj-q' : 'diff-n';
+        return `<div class="player-row">
+          <div style="font-size:11px;opacity:.5;min-width:50px">Sem ${w}${w === currentNFLWeek ? ' ← atual' : ''}</div>
+          <div>${myTeams.map(t => `<span class="badge b-redraft" style="margin-left:4px">${t}</span>`).join('')}</div>
+          <span class="inj-badge ${cls}">${myTeams.length} jogador(es)</span>
+        </div>`;
       }).join('')}
-      </div>
+      ${Object.keys(byeMap).length === 0 ? '<p style="font-size:11px;opacity:.4;margin-top:8px">Temporada ainda não iniciada ou dados indisponíveis.</p>' : ''}
     </div>`;
 }
 
 // ══ ADP ═════════════════════════════════════════════════════════════
+
 async function fetchADP(){
-  const el=document.getElementById('adp-results');
-  const format=document.getElementById('adp-format').value;
-  const teams=document.getElementById('adp-teams').value;
-  el.innerHTML='<div class="sbar gold"><span class="spinner"></span><span>Buscando ADP…</span></div>';
-  try{
-    const url=`https://fantasyfootballcalculator.com/api/v1/adp/${format}?teams=${teams}&year=2025`;
-    const data=await fetch(url).then(r=>r.json());
-    adpData=data.players||[];
-    filterADP();
-  }catch(e){el.innerHTML='<div class="no-data">Erro ao buscar ADP. Tente novamente.</div>';}
+  const el = document.getElementById('adp-results');
+  const format = document.getElementById('adp-format').value;
+  const teams = document.getElementById('adp-teams').value;
+  el.innerHTML = '<div class="sbar gold"><span class="spinner"></span><span>Buscando ADP via Sleeper…</span></div>';
+  try {
+    // Sleeper has public trending/ADP data
+    const [trending, players] = await Promise.all([
+      fetch('https://api.sleeper.app/v1/players/nfl/trending/add?lookback_hours=24&limit=100').then(r=>r.json()),
+      fetch('https://api.sleeper.app/v1/players/nfl').then(r=>r.json())
+    ]);
+
+    adpData = trending.map((t, i) => {
+      const p = players[t.player_id];
+      if(!p) return null;
+      return {
+        rank: i + 1,
+        name: p.full_name || p.first_name + ' ' + p.last_name,
+        team: p.team || 'FA',
+        position: p.fantasy_positions?.[0] || '?',
+        adds: t.count,
+        player_id: t.player_id
+      };
+    }).filter(Boolean);
+
+    renderADPList();
+  } catch(e) {
+    // Fallback: AI-based ADP
+    el.innerHTML = `
+      <div class="card">
+        <h3>📈 ADP — Consulta via IA</h3>
+        <p style="font-size:11px;opacity:.5;margin-bottom:8px">API de ADP externo bloqueado por CORS. Use a consulta IA abaixo para ADP atualizado.</p>
+        <input type="text" id="adp-player-q" placeholder="Ex: Bijan Robinson, CeeDee Lamb, Brock Bowers"/>
+        <div class="grid2">
+          <select id="adp-fmt-q"><option value="Half PPR">Half PPR</option><option value="PPR">PPR</option><option value="Standard">Standard</option></select>
+          <select id="adp-teams-q"><option value="12">12 times</option><option value="10">10 times</option><option value="14">14 times</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="doADPQuery()">Consultar ADP com IA ↗</button>
+        <div class="ai-box" id="adp-ai"></div>
+      </div>`;
+  }
 }
+
+function renderADPList(){
+  const el = document.getElementById('adp-results');
+  const search = (document.getElementById('adp-search')?.value || '').toLowerCase();
+  const list = search ? adpData.filter(p => p.name?.toLowerCase().includes(search)) : adpData.slice(0, 60);
+  if(!list.length){ el.innerHTML = '<div class="no-data">Nenhum resultado.</div>'; return; }
+  el.innerHTML = `
+    <div class="sbar green" style="margin-bottom:8px"><span>✓</span><span>Trending adds — últimas 24h no Sleeper · ${adpData.length} jogadores</span></div>
+    <table class="rk-table">
+      <thead><tr><th>Rank</th><th>Jogador</th><th>Time</th><th>Pos</th><th>Adds 24h</th></tr></thead>
+      <tbody>${list.map(p => `
+        <tr>
+          <td><span class="rn">${p.rank}</span></td>
+          <td style="font-weight:600">${p.name}</td>
+          <td style="opacity:.4">${p.team}</td>
+          <td><span class="pos-${p.position}">${p.position}</span></td>
+          <td style="color:var(--gold);font-weight:700">+${p.adds?.toLocaleString()}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
 function filterADP(){
-  const el=document.getElementById('adp-results');
-  const search=document.getElementById('adp-search').value.toLowerCase();
-  const list=search?adpData.filter(p=>(p.name||'').toLowerCase().includes(search)):adpData.slice(0,50);
-  if(!list.length){el.innerHTML='<div class="no-data">Nenhum resultado.</div>';return;}
-  el.innerHTML=`<table class="rk-table"><thead><tr><th>ADP</th><th>Jogador</th><th>Time</th><th>Pos</th><th>Pick</th></tr></thead><tbody>`+
-    list.map(p=>`<tr><td><span class="rn">${Math.round(p.adp||0)}</span></td><td style="font-weight:600">${p.name}</td><td style="opacity:.4">${p.team||''}</td><td><span class="pos-${p.position}">${p.position}</span></td><td style="opacity:.4">${p.pick_number||''}</td></tr>`).join('')+
-    '</tbody></table>';
+  if(adpData.length) renderADPList();
+}
+
+async function doADPQuery(){
+  const player = document.getElementById('adp-player-q')?.value || '';
+  const fmt = document.getElementById('adp-fmt-q')?.value || 'Half PPR';
+  const teams = document.getElementById('adp-teams-q')?.value || '12';
+  if(!player.trim()){ alert('Insira jogadores.'); return; }
+  const prompt = `ADP FANTASY FOOTBALL 2025 — Formato: ${fmt} | ${teams} times\n\nQual o ADP atual de: ${player}?\n\nPara cada jogador informe:\n- ADP aproximado (posição geral e por posição)\n- Tier de draft\n- Se está sendo draftado acima ou abaixo do valor real\n- Recomendação: pagar o preço, evitar ou esperar rounds posteriores`;
+  const ai = document.getElementById('adp-ai');
+  if(ai){ ai.style.display='block'; await callAI(prompt,'adp-ai'); }
 }
 
 // ══ KTC ══════════════════════════════════════════════════════════════
@@ -1159,22 +1325,55 @@ async function doCompare(){
   await callAI(prompt,'cmp-resp');
 }
 
-// ══ STREAMING BB ═════════════════════════════════════════════════════
 async function fetchStreaming(){
-  const el=document.getElementById('stream-results');
-  const need=document.getElementById('stream-need').value;
-  const sc=document.getElementById('stream-sc').value;
-  el.innerHTML='<div class="sbar teal"><span class="spinner"></span><span>Buscando opções de streaming…</span></div>';
-  const teams=Object.entries(NBA_GAMES_THIS_WEEK).sort((a,b)=>b[1]-a[1]);
-  el.innerHTML=`<div class="lbl">Times com mais jogos esta semana</div>`+
-    teams.slice(0,15).map(([team,games])=>{
-      const cls=games>=4?'games-4':games>=3?'games-3':'games-2';
-      return`<div class="stream-row"><div><strong>${team}</strong><div style="font-size:10px;opacity:.4">NBA 2025-26</div></div><span class="games-badge ${cls}">${games} jogos</span></div>`;
-    }).join('');
-  const prompt=`STREAMING ASSISTANT — Fantasy Basketball | ${sc}\n\nTimes com mais jogos esta semana:\n${teams.slice(0,10).map(([t,g])=>`${t}: ${g} jogos`).join(', ')}\n\nNecessidades: ${need||'geral'}\n\nSugira 5 jogadores para streaming esta semana, explicando quantos jogos cada um tem, quais categorias contribuem, e se são opções seguras ou especulativas.`;
-  const ai=document.getElementById('stream-ai');
-  ai.style.display='block';
-  await callAI(prompt,'stream-ai');
+  const el = document.getElementById('stream-results');
+  const need = document.getElementById('stream-need').value;
+  const sc = document.getElementById('stream-sc').value;
+  el.innerHTML = '<div class="sbar teal"><span class="spinner"></span><span>Buscando schedule NBA em tempo real (balldontlie.io)…</span></div>';
+
+  // Fetch real NBA schedule
+  const schedData = await fetchNBASchedule();
+  const counts = schedData?.counts || nbaGamesThisWeek;
+  const weekLabel = schedData?.week || 'semana atual';
+
+  if(!Object.keys(counts).length) {
+    el.innerHTML = '<div class="no-data">Não foi possível buscar o schedule. Tente novamente.</div>';
+    return;
+  }
+
+  const teams = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+  el.innerHTML = `
+    <div class="sbar green" style="margin-bottom:8px"><span>✓</span><span>Schedule real: ${weekLabel} · ${schedData?.total||'?'} jogos</span></div>
+    <div class="lbl">Times com mais jogos esta semana</div>
+    ${teams.slice(0,20).map(([team, games]) => {
+      const cls = games >= 4 ? 'games-4' : games >= 3 ? 'games-3' : 'games-2';
+      return `<div class="stream-row">
+        <div><strong>${team}</strong><div style="font-size:10px;opacity:.4">${games} jogo(s) na semana</div></div>
+        <span class="games-badge ${cls}">${games}G</span>
+      </div>`;
+    }).join('')}`;
+
+  const top4 = teams.filter(([,g]) => g >= 4).map(([t]) => t);
+  const top3 = teams.filter(([,g]) => g === 3).map(([t]) => t);
+
+  const prompt = `STREAMING ASSISTANT — Fantasy Basketball | ${sc} | ${weekLabel}
+
+Times com 4+ jogos esta semana: ${top4.join(', ')||'nenhum'}
+Times com 3 jogos: ${top3.slice(0,8).join(', ')}
+
+Necessidades do meu time: ${need||'geral — melhores opções disponíveis'}
+
+Com base no schedule real desta semana, sugira 5-7 jogadores para streaming:
+- Priorize jogadores de times com 4+ jogos
+- Indique quantos jogos cada um tem
+- Explique quais categorias contribuem (pts, reb, ast, stl, blk, 3pm)
+- Classifique: seguro / especulativo / alto risco
+- Mencione disponibilidade típica em ligas (% owned)`;
+
+  const ai = document.getElementById('stream-ai');
+  ai.style.display = 'block';
+  await callAI(prompt, 'stream-ai');
 }
 
 // ══ NBA STATS ════════════════════════════════════════════════════════
