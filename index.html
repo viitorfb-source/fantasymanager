@@ -19,8 +19,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f0f;color:#eee;min-h
 .sport-btn.basketball.active{background:#1e1e38;border-bottom:3px solid var(--rats-teal)}
 .header{padding:20px 24px 0;display:flex;align-items:center;gap:16px}
 .logo-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;flex-shrink:0}
-.logo-circle.miners{background:var(--miners-gold);color:var(--miners-dark)}
-.logo-circle.rats{background:var(--rats-purple);color:var(--rats-teal)}
+.logo-circle.miners{background:transparent;padding:0;overflow:hidden}
+.logo-circle.rats{background:transparent;padding:0;overflow:hidden}
+.logo-circle img{width:64px;height:64px;object-fit:contain;border-radius:50%}
+.sport-btn.football img,.sport-btn.basketball img{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:50%}
 .header-text h1{font-size:22px;font-weight:900}
 .header-text p{font-size:13px;opacity:.6;margin-top:2px}
 .miners-theme .header-text h1{color:var(--miners-gold)}
@@ -114,18 +116,28 @@ textarea:focus,select:focus,input:focus{outline:none}
 .jake-badge{background:#7c3aed;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
 .ecr-badge{background:#1d4ed8;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
 </style>
+<script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
 
+<div class="auth-bar" id="auth-bar">
+  <div style="font-size:13px;font-weight:700;color:#F5C518">⛏️ Fantasy Manager</div>
+  <div class="user-info" id="auth-user-area">
+    <button class="btn-google" onclick="signInGoogle()">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Entrar com Google
+    </button>
+  </div>
+</div>
 <div class="sport-bar">
-  <button class="sport-btn football active" onclick="switchSport('football')">🏈 PARANÁ MINERS</button>
-  <button class="sport-btn basketball" onclick="switchSport('basketball')">🏀 MG RATS</button>
+  <button class="sport-btn football active" onclick="switchSport('football')"><img src="${LOGO_MINERS}" onerror="this.style.display='none'"> PARANÁ MINERS</button>
+  <button class="sport-btn basketball" onclick="switchSport('basketball')"><img src="${LOGO_RATS}" onerror="this.style.display='none'"> MG RATS</button>
 </div>
 
 <!-- ===== FOOTBALL ===== -->
 <div id="football-panel" class="panel active miners-theme">
   <div class="header">
-    <div class="logo-circle miners">⛏️</div>
+    <div class="logo-circle miners"><img src="${LOGO_MINERS}" alt="Paraná Miners" onerror="this.parentElement.textContent='⛏️'"></div>
     <div class="header-text">
       <h1>PARANÁ MINERS</h1>
       <p>Fantasy Football · Sleeper + Fleaflicker</p>
@@ -308,7 +320,7 @@ textarea:focus,select:focus,input:focus{outline:none}
 <!-- ===== BASKETBALL ===== -->
 <div id="basketball-panel" class="panel rats-theme">
   <div class="header">
-    <div class="logo-circle rats">🐀</div>
+    <div class="logo-circle rats"><img src="${LOGO_RATS}" alt="MG Rats" onerror="this.parentElement.textContent='🐀'"></div>
     <div class="header-text">
       <h1>MINAS GERAIS RATS</h1>
       <p>Fantasy Basketball · ESPN + Fleaflicker</p>
@@ -419,6 +431,11 @@ textarea:focus,select:focus,input:focus{outline:none}
 </div>
 
 <script>
+const LOGO_MINERS = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Paran%C3%A1%20Miners.jpeg';
+const LOGO_RATS = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Minas%20Gerais%20Rats.jpg';
+const ANTHROPIC_KEY = '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';
+const GOOGLE_CLIENT_ID = '941630133751-li1lm82bhcur6cu8ju1ersleas5965t7.apps.googleusercontent.com';
+const DRIVE_FILE_NAME = 'fantasyManager_dados.json';
 const SLEEPER_USER = 'vitorfrb';
 const FFL_USER_ID = 1279129;
 const ESPN_BB_LEAGUE_ID = 61189009;
@@ -447,6 +464,123 @@ const FFL_PRESET_LEAGUES = {
     { id:'ffl_nba_26190', ffl_id:26190, ffl_team_id:null, name:'Liga NBA Fleaflicker (Dynasty)', platform:'fleaflicker', sport:'nba', type:'dynasty', scoring:'h2h-points', teams:null },
   ]
 };
+
+// ── GOOGLE AUTH & DRIVE ───────────────────────────────────────────────
+let googleToken = null;
+let driveFileId = null;
+let currentUser = null;
+
+function signInGoogle() {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
+    callback: async (resp) => {
+      if (resp.error) return;
+      googleToken = resp.access_token;
+      await loadUserProfile();
+      await syncFromDrive();
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function loadUserProfile() {
+  try {
+    const r = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${googleToken}` }
+    });
+    currentUser = await r.json();
+    const area = document.getElementById('auth-user-area');
+    area.innerHTML = `
+      <img src="${currentUser.picture}" alt="">
+      <span style="color:#eee">${currentUser.name}</span>
+      <span class="drive-status" id="drive-status">Sincronizando…</span>
+      <button class="btn-signout" onclick="signOut()">Sair</button>`;
+  } catch(e) {}
+}
+
+function signOut() {
+  googleToken = null; currentUser = null; driveFileId = null;
+  const area = document.getElementById('auth-user-area');
+  area.innerHTML = `<button class="btn-google" onclick="signInGoogle()">
+    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Entrar com Google</button>`;
+}
+
+async function syncFromDrive() {
+  if (!googleToken) return;
+  setDriveStatus('Carregando do Drive…');
+  try {
+    const search = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}' and trashed=false&fields=files(id,name)`,
+      { headers: { Authorization: `Bearer ${googleToken}` } }
+    );
+    const { files } = await search.json();
+    if (files && files.length) {
+      driveFileId = files[0].id;
+      const content = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
+        { headers: { Authorization: `Bearer ${googleToken}` } }
+      );
+      const data = await content.json();
+      if (data.fb) state.fb.leagues = data.fb.leagues || [];
+      if (data.bb) state.bb.leagues = data.bb.leagues || [];
+      if (data.history) state.history = data.history;
+      if (data.rankings) state.rankings = data.rankings;
+      if (data.athletic) state.athletic = data.athletic;
+      FFL_PRESET_LEAGUES.fb.forEach(lg => { if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg); });
+      FFL_PRESET_LEAGUES.bb.forEach(lg => { if (!state.bb.leagues.find(x=>x.id===lg.id)) state.bb.leagues.push(lg); });
+      renderFBLeagues(); renderBBLeagues(); populateLeagueSelects();
+      renderHistory('fb'); renderHistory('bb');
+      loadAthleticContent();
+      if (state.rankings.length) showRankingsLoaded();
+      setDriveStatus('✓ Sincronizado');
+    } else {
+      await saveToDrive();
+    }
+  } catch(e) { setDriveStatus('Erro no Drive'); }
+}
+
+async function saveToDrive() {
+  if (!googleToken) { saveState(); return; }
+  setDriveStatus('Salvando…');
+  const payload = JSON.stringify({
+    fb: { leagues: state.fb.leagues },
+    bb: { leagues: state.bb.leagues },
+    history: state.history,
+    rankings: state.rankings,
+    athletic: state.athletic
+  });
+  try {
+    if (driveFileId) {
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
+        body: payload
+      });
+    } else {
+      const meta = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })
+      });
+      const { id } = await meta.json();
+      driveFileId = id;
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
+        body: payload
+      });
+    }
+    saveState();
+    setDriveStatus('✓ Salvo no Drive');
+  } catch(e) { saveState(); setDriveStatus('Erro ao salvar'); }
+}
+
+function setDriveStatus(msg) {
+  const el = document.getElementById('drive-status');
+  if (el) el.textContent = msg;
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -487,6 +621,7 @@ function saveState() {
     rankings: state.rankings,
     athletic: state.athletic
   }));
+  if (googleToken) saveToDrive();
 }
 
 // ── RANKINGS CSV IMPORT ───────────────────────────────────────────────
@@ -867,7 +1002,7 @@ async function callAI(prompt, responseElId) {
   el.innerHTML='<span class="spinner"></span> Analisando como expert…';
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
         system:`Você é um analista expert em fantasy football e fantasy basketball americano. Conhece PPR, Half-PPR, Standard, Superflex, TE Premium, IDP, dynasty, redraft, trade value charts, métricas avançadas (target share, air yards, snap count, usage rate), streaming de basketball, punting de categorias, e gestão de múltiplas ligas.
