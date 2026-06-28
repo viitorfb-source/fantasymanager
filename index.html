@@ -899,25 +899,17 @@ async function fetchFleaflickerLeagues() {
 
 async function fetchESPNLeague() {
   const el = document.getElementById('espn-fetch-status');
-  try {
-    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${ESPN_BB_SEASON}/segments/0/leagues/${ESPN_BB_LEAGUE_ID}?view=mTeam&view=mSettings`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    const name = data.settings?.name || `ESPN Liga ${ESPN_BB_LEAGUE_ID}`;
-    const teams = data.settings?.size || 12;
-    const lg = { id:`espn_bb_${ESPN_BB_LEAGUE_ID}`, espn_id:ESPN_BB_LEAGUE_ID,
-      name, platform:'espn', sport:'nba', type:'redraft', scoring:'h2h-points', teams };
-    if (!state.bb.leagues.find(x=>x.id===lg.id)) state.bb.leagues.push(lg);
-    saveState(); renderBBLeagues(); populateLeagueSelects();
-    el.textContent = `ESPN: "${name}" carregada ✓`; el.parentElement.style.borderColor='#22c55e';
-  } catch(e) {
-    const fallback = { id:`espn_bb_${ESPN_BB_LEAGUE_ID}`, espn_id:ESPN_BB_LEAGUE_ID,
-      name:'Liga NBA ESPN (61189009)', platform:'espn', sport:'nba', type:'redraft', scoring:'h2h-points', teams:12 };
-    if (!state.bb.leagues.find(x=>x.id===fallback.id)) { state.bb.leagues.push(fallback); saveState(); renderBBLeagues(); populateLeagueSelects(); }
-    el.textContent=`ESPN: CORS no sandbox. Liga pré-cadastrada ✓`;
+  // ESPN requer autenticação para esta liga — usando dados pré-cadastrados
+  const fallback = { id:`espn_bb_${ESPN_BB_LEAGUE_ID}`, espn_id:ESPN_BB_LEAGUE_ID,
+    name:'Liga NBA ESPN', platform:'espn', sport:'nba', type:'redraft', scoring:'h2h-points', teams:12 };
+  if (!state.bb.leagues.find(x=>x.id===fallback.id)) {
+    state.bb.leagues.push(fallback); saveState(); renderBBLeagues(); populateLeagueSelects();
   }
-  el.parentElement.querySelector('.spinner').style.display='none';
+  if (el) {
+    el.textContent = 'ESPN: Liga NBA pré-cadastrada ✓';
+    el.parentElement.style.borderColor = '#22c55e';
+    el.parentElement.querySelector('.spinner').style.display = 'none';
+  }
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────
