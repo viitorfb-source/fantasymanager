@@ -3,1186 +3,1380 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fantasy Manager</title>
+<title>Fantasy Manager VB</title>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --miners-gold:#F5C518;--miners-dark:#1A1A1A;--miners-gray:#4A4A4A;--miners-light:#F0EDD8;
-  --rats-purple:#5B2D8E;--rats-teal:#00B4B4;--rats-dark:#1A1A2E;--rats-light:#EEE8FF;
-}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f0f;color:#eee;min-height:100vh}
-.sport-bar{display:flex;position:sticky;top:0;z-index:100}
-.sport-btn{flex:1;padding:14px;border:none;cursor:pointer;font-size:15px;font-weight:700;letter-spacing:1px;transition:all .3s}
-.sport-btn.football{background:var(--miners-dark);color:var(--miners-gold);border-bottom:3px solid transparent}
-.sport-btn.football.active{background:#222;border-bottom:3px solid var(--miners-gold)}
-.sport-btn.basketball{background:var(--rats-dark);color:var(--rats-teal);border-bottom:3px solid transparent}
-.sport-btn.basketball.active{background:#1e1e38;border-bottom:3px solid var(--rats-teal)}
-.header{padding:20px 24px 0;display:flex;align-items:center;gap:16px}
-.logo-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;flex-shrink:0}
-.logo-circle.miners{background:transparent;padding:0;overflow:hidden}
-.logo-circle.rats{background:transparent;padding:0;overflow:hidden}
-.logo-circle img{width:64px;height:64px;object-fit:contain;border-radius:50%}
-.sport-btn.football img,.sport-btn.basketball img{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:50%}
-.header-text h1{font-size:22px;font-weight:900}
-.header-text p{font-size:13px;opacity:.6;margin-top:2px}
-.miners-theme .header-text h1{color:var(--miners-gold)}
-.rats-theme .header-text h1{color:var(--rats-teal)}
-.panel{display:none;padding:16px 24px 80px}
-.panel.active{display:block}
-.miners-theme .panel{background:linear-gradient(180deg,#1a1a1a 0%,#111 100%);min-height:calc(100vh - 60px)}
-.rats-theme .panel{background:linear-gradient(180deg,#1a1a2e 0%,#0f0f1e 100%);min-height:calc(100vh - 60px)}
-.tabs{display:flex;gap:6px;margin:16px 0;flex-wrap:wrap}
-.tab{padding:7px 14px;border-radius:20px;border:1px solid;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
-.miners-theme .tab{border-color:var(--miners-gray);color:#aaa}
-.miners-theme .tab.active{background:var(--miners-gold);color:var(--miners-dark);border-color:var(--miners-gold)}
-.rats-theme .tab{border-color:#3a2d5a;color:#aaa}
-.rats-theme .tab.active{background:var(--rats-teal);color:#000;border-color:var(--rats-teal)}
-.card{border-radius:12px;padding:16px;margin-bottom:12px}
-.miners-theme .card{background:#222;border:1px solid #333}
-.rats-theme .card{background:#1e1e38;border:1px solid #2d2d5a}
-.card h3{font-size:14px;font-weight:700;margin-bottom:10px}
-.miners-theme .card h3{color:var(--miners-gold)}
-.rats-theme .card h3{color:var(--rats-teal)}
-textarea,select,input[type=text],input[type=number],input[type=password]{width:100%;padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;margin-bottom:10px}
-.miners-theme textarea,.miners-theme select,.miners-theme input{background:#2a2a2a;border:1px solid #444;color:#eee}
-.rats-theme textarea,.rats-theme select,.rats-theme input{background:#16163a;border:1px solid #3a2d5a;color:#eee}
-textarea:focus,select:focus,input:focus{outline:none}
-.miners-theme textarea:focus,.miners-theme select:focus,.miners-theme input:focus{border-color:var(--miners-gold)}
-.rats-theme textarea:focus,.rats-theme select:focus,.rats-theme input:focus{border-color:var(--rats-teal)}
-.btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.5px}
-.btn-sm{width:auto;padding:8px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
-.miners-theme .btn-primary{background:var(--miners-gold);color:#000}
-.miners-theme .btn-primary:hover{background:#e0b015}
-.rats-theme .btn-primary{background:var(--rats-teal);color:#000}
-.rats-theme .btn-primary:hover{background:#009a9a}
-.btn-danger{background:#dc2626;color:#fff}
-.ai-box{border-radius:10px;padding:14px;margin-top:12px;font-size:14px;line-height:1.7;white-space:pre-wrap;min-height:60px}
-.miners-theme .ai-box{background:#2a2a1a;border:1px solid #5a4a00;color:#f0e8a0}
-.rats-theme .ai-box{background:#16162e;border:1px solid #3a2d5a;color:#c8e0ff}
-.ai-box.loading{opacity:.6;font-style:italic}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px}
-.miners-theme .spinner{border-color:var(--miners-gold);border-top-color:transparent}
-.rats-theme .spinner{border-color:var(--rats-teal);border-top-color:transparent}
-@keyframes spin{to{transform:rotate(360deg)}}
-.section-label{font-size:11px;font-weight:700;letter-spacing:1.5px;opacity:.4;text-transform:uppercase;margin:16px 0 8px}
-.fetch-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:8px;font-size:13px}
-.miners-theme .fetch-bar{background:#2a2500;border:1px solid #4a3f00;color:#d4a800}
-.rats-theme .fetch-bar{background:#1a1040;border:1px solid #3a2d5a;color:#7cc8cc}
-.no-data{text-align:center;padding:40px 20px;opacity:.4;font-size:14px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.trade-sides{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.trade-side{border-radius:8px;padding:12px}
-.miners-theme .trade-side{background:#2a2500;border:1px solid #4a3f00}
-.rats-theme .trade-side{background:#1a1040;border:1px solid #3a2d5a}
-.trade-side h4{font-size:13px;font-weight:700;margin-bottom:8px;opacity:.8}
-.history-item{border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer}
-.miners-theme .history-item{background:#222;border-left:3px solid var(--miners-gold)}
-.rats-theme .history-item{background:#1e1e38;border-left:3px solid var(--rats-teal)}
-.history-item .h-type{font-size:11px;font-weight:700;opacity:.5;text-transform:uppercase;letter-spacing:1px}
-.history-item .h-q{font-size:13px;margin-top:3px;opacity:.9}
-.history-item .h-time{font-size:11px;opacity:.4;margin-top:3px}
+:root{--gold:#F5C518;--teal:#00B4B4;--purple:#5B2D8E;--red:#ef4444;--green:#22c55e;--blue:#3b82f6}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a0a;color:#eee;min-height:100vh}
 
-/* RANKINGS MODULE */
-.rankings-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.rankings-meta{font-size:12px;opacity:.5}
-.rank-table{width:100%;border-collapse:collapse;font-size:13px}
-.rank-table th{padding:8px 6px;text-align:left;font-size:11px;font-weight:700;opacity:.5;border-bottom:1px solid #333;white-space:nowrap}
-.rank-table td{padding:7px 6px;border-bottom:1px solid #1a1a1a}
-.rank-num{font-weight:900;font-size:15px;min-width:28px;display:inline-block}
-.miners-theme .rank-num{color:var(--miners-gold)}
-.rats-theme .rank-num{color:var(--rats-teal)}
-.pos-badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block}
-.pos-QB{background:#ef4444;color:#fff}.pos-RB{background:#22c55e;color:#fff}
-.pos-WR{background:#3b82f6;color:#fff}.pos-TE{background:#f59e0b;color:#000}
-.pos-K{background:#8b5cf6;color:#fff}
-.ecr-diff{font-size:12px;font-weight:700;padding:2px 6px;border-radius:4px}
-.ecr-pos{background:#14532d;color:#4ade80}
-.ecr-neg{background:#450a0a;color:#f87171}
-.ecr-neu{background:#1f2937;color:#9ca3af}
-.rank-filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.rank-filter-btn{padding:5px 12px;border-radius:16px;border:1px solid #444;background:transparent;color:#aaa;cursor:pointer;font-size:12px;font-weight:600}
-.rank-filter-btn.active{border-color:var(--miners-gold);color:var(--miners-gold);background:#2a2500}
-.rats-theme .rank-filter-btn.active{border-color:var(--rats-teal);color:var(--rats-teal);background:#1a1040}
-.upload-zone{border:2px dashed #444;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
-.miners-theme .upload-zone:hover{border-color:var(--miners-gold);background:#2a2500}
-.rats-theme .upload-zone:hover{border-color:var(--rats-teal);background:#1a1040}
-.upload-zone p{font-size:13px;opacity:.6;margin-top:6px}
-.upload-zone input[type=file]{display:none}
-.rankings-info-bar{border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.miners-theme .rankings-info-bar{background:#2a2500;border:1px solid #4a3f00;color:#d4a800}
-.rats-theme .rankings-info-bar{background:#1a1040;border:1px solid #3a2d5a;color:#7cc8cc}
-.search-box{margin-bottom:10px}
-.search-box input{margin-bottom:0}
-.jake-badge{background:#7c3aed;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
-.ecr-badge{background:#1d4ed8;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
+/* AUTH BAR */
+.auth-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;background:#111;border-bottom:1px solid #1e1e1e;position:sticky;top:0;z-index:200}
+.brand{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+.auth-user{display:flex;align-items:center;gap:8px;font-size:12px}
+.auth-user img{width:24px;height:24px;border-radius:50%}
+.btn-google{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;background:#fff;color:#333;font-size:12px;font-weight:700}
+.btn-signout{padding:5px 10px;border-radius:6px;border:none;cursor:pointer;background:#222;color:#aaa;font-size:12px}
+.drive-st{font-size:10px;opacity:.4}
+
+/* SPORT BAR */
+.sport-bar{display:flex;position:sticky;top:41px;z-index:150}
+.sport-btn{flex:1;padding:11px;border:none;cursor:pointer;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .25s;letter-spacing:.3px}
+.sport-btn img{width:24px;height:24px;border-radius:50%;object-fit:contain}
+.sport-btn.fb{background:#141414;color:var(--gold);border-bottom:3px solid transparent}
+.sport-btn.fb.active{background:#1a1a1a;border-bottom:3px solid var(--gold)}
+.sport-btn.bb{background:#0d0d1a;color:var(--teal);border-bottom:3px solid transparent}
+.sport-btn.bb.active{background:#12122a;border-bottom:3px solid var(--teal)}
+
+/* PANELS */
+.panel{display:none;padding:14px 16px 100px}
+.panel.active{display:block}
+.fb-panel{background:#0f0f0f}
+.bb-panel{background:#08081a}
+
+/* HEADER */
+.p-header{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+.logo-wrap{width:54px;height:54px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;background:#1a1a1a}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+.p-header h1{font-size:18px;font-weight:900}
+.p-header p{font-size:11px;opacity:.4;margin-top:1px}
+.fb-panel .p-header h1{color:var(--gold)}
+.bb-panel .p-header h1{color:var(--teal)}
+
+/* TABS */
+.tabs{display:flex;gap:5px;margin:12px 0;flex-wrap:wrap}
+.tab{padding:5px 12px;border-radius:18px;border:1px solid;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;white-space:nowrap}
+.fb-panel .tab{border-color:#2a2a2a;color:#666}
+.fb-panel .tab.active{background:var(--gold);color:#000;border-color:var(--gold)}
+.bb-panel .tab{border-color:#1e1e3a;color:#666}
+.bb-panel .tab.active{background:var(--teal);color:#000;border-color:var(--teal)}
+.tc{display:none}.tc.active{display:block}
+
+/* CARDS */
+.card{border-radius:10px;padding:13px;margin-bottom:10px}
+.fb-panel .card{background:#161616;border:1px solid #222}
+.bb-panel .card{background:#0e0e22;border:1px solid #1e1e3a}
+.card h3{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.fb-panel .card h3{color:var(--gold)}
+.bb-panel .card h3{color:var(--teal)}
+
+/* INPUTS */
+textarea,select,input[type=text],input[type=number],input[type=password]{width:100%;padding:8px 10px;border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;margin-bottom:7px;outline:none}
+.fb-panel textarea,.fb-panel select,.fb-panel input{background:#1e1e1e;border:1px solid #2e2e2e;color:#eee}
+.bb-panel textarea,.bb-panel select,.bb-panel input{background:#0c0c20;border:1px solid #1e1e3a;color:#eee}
+.fb-panel textarea:focus,.fb-panel select:focus,.fb-panel input:focus{border-color:var(--gold)}
+.bb-panel textarea:focus,.bb-panel select:focus,.bb-panel input:focus{border-color:var(--teal)}
+
+/* BUTTONS */
+.btn{width:100%;padding:10px;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-sm{padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;width:auto}
+.fb-panel .btn-primary{background:var(--gold);color:#000}
+.bb-panel .btn-primary{background:var(--teal);color:#000}
+.btn-danger{background:#7f1d1d;color:#fca5a5}
+.btn-neutral{background:#222;color:#aaa}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* STATUS BARS */
+.sbar{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:7px;margin-bottom:6px;font-size:12px;border:1px solid}
+.sbar.gold{background:#1a1200;border-color:#3a2800;color:#c8a000}
+.sbar.teal{background:#001a1a;border-color:#003333;color:#00b4b4}
+.sbar.green{background:#0a1a0a;border-color:#1a3a1a;color:#4ade80}
+.sbar.red{background:#1a0a0a;border-color:#3a1a1a;color:#f87171}
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AI BOX */
+.ai-box{border-radius:8px;padding:12px;margin-top:8px;font-size:12px;line-height:1.8;white-space:pre-wrap;display:none}
+.fb-panel .ai-box{background:#141000;border:1px solid #3a2800;color:#e8d070}
+.bb-panel .ai-box{background:#080820;border:1px solid #1e1e4a;color:#90c0ff}
+.ai-loading{opacity:.6;font-style:italic}
+
+/* LABELS */
+.lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;opacity:.35;text-transform:uppercase;margin:10px 0 5px}
+.no-data{text-align:center;padding:30px;opacity:.3;font-size:12px}
+
+/* LEAGUE CARDS */
+.lg-card{border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fb-panel .lg-card{background:#161616;border:1px solid #222}
+.bb-panel .lg-card{background:#0e0e22;border:1px solid #1e1e3a}
+.lg-name{font-size:13px;font-weight:700}
+.fb-panel .lg-name{color:var(--gold)}
+.bb-panel .lg-name{color:var(--teal)}
+.lg-meta{font-size:10px;opacity:.4;margin-top:2px}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block}
+.b-dynasty{background:#6d28d9;color:#ddd6fe}
+.b-dynasty-idp{background:#b45309;color:#fde68a}
+.b-redraft{background:#065f46;color:#6ee7b7}
+
+/* RANKINGS */
+.rk-table{width:100%;border-collapse:collapse;font-size:11px}
+.rk-table th{padding:5px 4px;text-align:left;opacity:.35;font-size:9px;font-weight:700;border-bottom:1px solid #222;text-transform:uppercase}
+.rk-table td{padding:5px 4px;border-bottom:1px solid #141414}
+.rn{font-weight:900;font-size:13px;color:var(--gold);min-width:26px;display:inline-block}
+.pos-QB{background:#7f1d1d;color:#fca5a5;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.pos-RB{background:#14532d;color:#86efac;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.pos-WR{background:#1e3a5f;color:#93c5fd;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.pos-TE{background:#713f12;color:#fde68a;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.pos-QB,.pos-RB,.pos-WR,.pos-TE{display:inline-block}
+.diff-up{background:#14532d;color:#4ade80;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700}
+.diff-dn{background:#450a0a;color:#f87171;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700}
+.diff-n{background:#1f2937;color:#9ca3af;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700}
+.rf-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.rf-btn{padding:4px 10px;border-radius:14px;border:1px solid #333;background:transparent;color:#666;cursor:pointer;font-size:11px;font-weight:600}
+.fb-panel .rf-btn.active{border-color:var(--gold);color:var(--gold);background:#1a1200}
+.bb-panel .rf-btn.active{border-color:var(--teal);color:var(--teal);background:#001a1a}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.dash-card{border-radius:8px;padding:11px;text-align:center}
+.fb-panel .dash-card{background:#1a1200;border:1px solid #3a2800}
+.bb-panel .dash-card{background:#001a1a;border:1px solid #003333}
+.dash-num{font-size:22px;font-weight:900}
+.fb-panel .dash-num{color:var(--gold)}
+.bb-panel .dash-num{color:var(--teal)}
+.dash-lbl{font-size:9px;opacity:.5;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+.dash-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.dash-row:last-child{border-bottom:none}
+.win-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.win-good{background:#14532d;color:#4ade80}
+.win-mid{background:#713f12;color:#fde68a}
+.win-bad{background:#450a0a;color:#f87171}
+
+/* BYE WEEKS */
+.bye-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;font-size:9px}
+.bye-week{text-align:center;padding:4px 2px;border-radius:3px;font-weight:700}
+.bye-ok{background:#1a1a1a;color:#555}
+.bye-warn{background:#713f12;color:#fde68a}
+.bye-crit{background:#7f1d1d;color:#fca5a5}
+.bye-header{background:transparent;color:#444;font-size:8px}
+
+/* TRADE SIDES */
+.tr-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.tr-side{border-radius:7px;padding:10px}
+.fb-panel .tr-side{background:#1a1200;border:1px solid #3a2800}
+.bb-panel .tr-side{background:#001a1a;border:1px solid #003333}
+.tr-side h4{font-size:11px;font-weight:700;margin-bottom:6px;opacity:.7}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed #2a2a2a;border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.fb-panel .upload-zone:hover{border-color:var(--gold)}
+.bb-panel .upload-zone:hover{border-color:var(--teal)}
+.upload-zone input{display:none}
+
+/* HISTORY */
+.hist-item{border-radius:7px;padding:10px;margin-bottom:6px}
+.fb-panel .hist-item{background:#161616;border-left:3px solid var(--gold)}
+.bb-panel .hist-item{background:#0e0e22;border-left:3px solid var(--teal)}
+.hist-type{font-size:9px;font-weight:700;opacity:.4;text-transform:uppercase;letter-spacing:1px}
+.hist-q{font-size:12px;margin-top:2px}
+.hist-t{font-size:10px;opacity:.3;margin-top:2px}
+
+/* PLAYER ROW */
+.player-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.player-row:last-child{border-bottom:none}
+.inj-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
+.inj-out{background:#7f1d1d;color:#fca5a5}
+.inj-q{background:#713f12;color:#fde68a}
+.inj-ir{background:#450a0a;color:#f87171}
+
+/* KTC */
+.ktc-val{font-size:14px;font-weight:900;color:var(--gold)}
+.ktc-trend-up{color:#4ade80;font-size:10px}
+.ktc-trend-dn{color:#f87171;font-size:10px}
+
+/* STREAMING */
+.stream-row{border-radius:7px;padding:9px 11px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.fb-panel .stream-row{background:#161616;border:1px solid #222}
+.bb-panel .stream-row{background:#0e0e22;border:1px solid #1e1e3a}
+.games-badge{font-size:11px;font-weight:900;padding:3px 8px;border-radius:5px}
+.games-4{background:#14532d;color:#4ade80}
+.games-3{background:#713f12;color:#fde68a}
+.games-2{background:#1f2937;color:#9ca3af}
+
+/* PLAYOFF SIM */
+.sim-bar{height:8px;border-radius:4px;margin-top:4px;transition:width .5s}
+.sim-good{background:var(--green)}
+.sim-mid{background:#f59e0b}
+.sim-bad{background:var(--red)}
 </style>
-<script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
 
-<div class="auth-bar" id="auth-bar">
-  <div style="font-size:13px;font-weight:700;color:#F5C518">⛏️ Fantasy Manager</div>
-  <div class="user-info" id="auth-user-area">
-    <button class="btn-google" onclick="signInGoogle()">
-      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+<div class="auth-bar">
+  <div class="brand">⛏️ Fantasy Manager VB</div>
+  <div class="auth-user" id="auth-area">
+    <button class="btn-google" onclick="signIn()">
+      <svg width="13" height="13" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Entrar com Google
     </button>
   </div>
 </div>
+
 <div class="sport-bar">
-  <button class="sport-btn football active" onclick="switchSport('football')" id="btn-football">🏈 PARANÁ MINERS</button>
-  <button class="sport-btn basketball" onclick="switchSport('basketball')" id="btn-basketball">🏀 MG RATS</button>
+  <button class="sport-btn fb active" id="btn-fb" onclick="setSport('fb')">PARANÁ MINERS</button>
+  <button class="sport-btn bb" id="btn-bb" onclick="setSport('bb')">MG RATS</button>
 </div>
 
-<!-- ===== FOOTBALL ===== -->
-<div id="football-panel" class="panel active miners-theme">
-  <div class="header">
-    <div class="logo-circle miners" id="logo-miners"><span>⛏️</span></div>
-    <div class="header-text">
-      <h1>PARANÁ MINERS</h1>
-      <p>Fantasy Football · Sleeper + Fleaflicker</p>
-    </div>
+<!-- ══ FOOTBALL ══════════════════════════════════════════════════════ -->
+<div class="panel fb-panel active" id="panel-fb">
+  <div class="p-header">
+    <div class="logo-wrap" id="logo-fb">⛏️</div>
+    <div><h1>PARANÁ MINERS</h1><p>Fantasy Football · Sleeper + Fleaflicker</p></div>
   </div>
-  <div class="tabs" id="fb-tabs">
-    <div class="tab active" onclick="fbTab('leagues')">Ligas</div>
-    <div class="tab" onclick="fbTab('rankings')">Rankings</div>
-    <div class="tab" onclick="fbTab('start-sit')">Start/Sit</div>
-    <div class="tab" onclick="fbTab('waivers')">Waivers</div>
-    <div class="tab" onclick="fbTab('trade')">Trade</div>
-    <div class="tab" onclick="fbTab('draft')">Draft</div>
-    <div class="tab" onclick="fbTab('analyze')">Análise IA</div>
-    <div class="tab" onclick="fbTab('history')">Histórico</div>
+  <div class="tabs" id="tabs-fb">
+    <div class="tab active" onclick="setTab('fb','dash')">Dashboard</div>
+    <div class="tab" onclick="setTab('fb','ligas')">Ligas</div>
+    <div class="tab" onclick="setTab('fb','rankings')">Rankings</div>
+    <div class="tab" onclick="setTab('fb','lesoes')">Lesões</div>
+    <div class="tab" onclick="setTab('fb','bye')">Bye Weeks</div>
+    <div class="tab" onclick="setTab('fb','adp')">ADP</div>
+    <div class="tab" onclick="setTab('fb','ktc')">KTC Values</div>
+    <div class="tab" onclick="setTab('fb','waiver')">Waivers</div>
+    <div class="tab" onclick="setTab('fb','startsit')">Start/Sit</div>
+    <div class="tab" onclick="setTab('fb','trade')">Trade</div>
+    <div class="tab" onclick="setTab('fb','draft')">Draft</div>
+    <div class="tab" onclick="setTab('fb','playoff')">Playoffs</div>
+    <div class="tab" onclick="setTab('fb','comparar')">Comparar</div>
+    <div class="tab" onclick="setTab('fb','ia')">Análise IA</div>
+    <div class="tab" onclick="setTab('fb','hist')">Histórico</div>
   </div>
 
-  <!-- LEAGUES -->
-  <div id="fb-leagues" class="fb-tab-content">
-    <div class="fetch-bar"><span class="spinner"></span><span id="fb-fetch-status">Carregando Sleeper (vitorfrb)…</span></div>
-    <div class="fetch-bar"><span class="spinner"></span><span id="ffl-fetch-status">Carregando Fleaflicker (vitorfb)…</span></div>
-    <div class="section-label">Suas ligas</div>
-    <div id="fb-league-list"></div>
-    <div class="card" style="margin-top:16px">
+  <!-- DASHBOARD -->
+  <div class="tc active" id="fb-dash">
+    <div class="lbl">Visão geral das ligas</div>
+    <div id="fb-dash-content"><div class="no-data">Carregando…</div></div>
+  </div>
+
+  <!-- LIGAS -->
+  <div class="tc" id="fb-ligas">
+    <div class="sbar gold" id="bar-sleeper"><span class="spinner"></span><span id="st-sleeper">Carregando Sleeper (vitorfrb)…</span></div>
+    <div class="sbar green" id="bar-ffl"><span>✓</span><span>Fleaflicker: 3 ligas dynasty pré-cadastradas</span></div>
+    <div class="lbl">Suas ligas</div>
+    <div id="fb-lg-list"></div>
+    <div class="card" style="margin-top:10px">
       <h3>➕ Adicionar liga manual</h3>
-      <input type="text" id="fl-league-name" placeholder="Nome da liga" />
-      <div class="grid-2">
-        <select id="fl-format"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
-        <select id="fl-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
+      <input type="text" id="add-fb-name" placeholder="Nome da liga"/>
+      <div class="grid2">
+        <select id="add-fb-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+        <select id="add-fb-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
       </div>
-      <input type="number" id="fl-teams" placeholder="Nº de times" />
-      <button class="btn btn-primary" onclick="addManualLeague()">Adicionar</button>
+      <input type="number" id="add-fb-teams" placeholder="Nº de times"/>
+      <button class="btn btn-primary" onclick="addLgFb()">Adicionar</button>
     </div>
   </div>
 
   <!-- RANKINGS -->
-  <div id="fb-rankings" class="fb-tab-content" style="display:none">
+  <div class="tc" id="fb-rankings">
     <div class="card">
-      <h3>📊 Rankings Jake Ciely (FantasyPros)</h3>
-      <p style="font-size:13px;opacity:.6;margin-bottom:12px">Importe o CSV exportado do FantasyPros. Você pode ter múltiplos rankings (redraft, dynasty, rookies).</p>
-      <div class="upload-zone" onclick="document.getElementById('rankings-file').click()">
-        <div style="font-size:28px">📂</div>
-        <strong style="font-size:14px">Clique para importar CSV</strong>
-        <p>FantasyPros export · Jake Ciely rankings</p>
-        <input type="file" id="rankings-file" accept=".csv" multiple onchange="handleRankingsUpload(event)">
+      <h3>📊 Rankings FantasyPros (Export CSV)</h3>
+      <div class="upload-zone" onclick="document.getElementById('rk-file').click()">
+        <div style="font-size:22px">📂</div>
+        <strong style="font-size:12px">Importar CSV do FantasyPros</strong>
+        <p style="font-size:11px;opacity:.4;margin-top:3px">Suporta múltiplos arquivos</p>
+        <input type="file" id="rk-file" accept=".csv" multiple onchange="importRk(event)">
       </div>
-      <div id="rankings-status"></div>
+      <div id="rk-status"></div>
     </div>
-
-    <div id="rankings-loaded" style="display:none">
-      <div class="rankings-info-bar" id="rankings-info-bar"></div>
-      <div class="rank-filter-bar" id="rank-filter-bar">
-        <button class="rank-filter-btn active" onclick="filterRankings('ALL',this)">Todos</button>
-        <button class="rank-filter-btn" onclick="filterRankings('QB',this)">QB</button>
-        <button class="rank-filter-btn" onclick="filterRankings('RB',this)">RB</button>
-        <button class="rank-filter-btn" onclick="filterRankings('WR',this)">WR</button>
-        <button class="rank-filter-btn" onclick="filterRankings('TE',this)">TE</button>
-        <button class="rank-filter-btn" onclick="filterRankings('JAKE+',this)">Jake gosta ↑</button>
-        <button class="rank-filter-btn" onclick="filterRankings('JAKE-',this)">Jake evita ↓</button>
+    <div id="rk-loaded" style="display:none">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="rk-tabs"></div>
+      <div class="card" style="padding:9px 11px;margin-bottom:8px" id="rk-info"></div>
+      <div class="rf-bar" id="rk-filters">
+        <button class="rf-btn active" onclick="setRkF('ALL',this)">Todos</button>
+        <button class="rf-btn" onclick="setRkF('QB',this)">QB</button>
+        <button class="rf-btn" onclick="setRkF('RB',this)">RB</button>
+        <button class="rf-btn" onclick="setRkF('WR',this)">WR</button>
+        <button class="rf-btn" onclick="setRkF('TE',this)">TE</button>
+        <button class="rf-btn" onclick="setRkF('UP',this)">↑ Expert</button>
+        <button class="rf-btn" onclick="setRkF('DN',this)">↓ Expert</button>
       </div>
-      <div class="search-box"><input type="text" id="rankings-search" placeholder="Buscar jogador…" oninput="renderRankingsTable()"></div>
-      <div id="rankings-tabs-selector" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>
-      <table class="rank-table">
-        <thead><tr>
-          <th>Rank</th><th>Jogador</th><th>Time</th><th>Pos</th>
-          <th><span class="jake-badge">JAKE</span></th>
-          <th><span class="ecr-badge">ECR</span></th>
-          <th>vs ECR</th>
-        </tr></thead>
-        <tbody id="rankings-tbody"></tbody>
-      </table>
+      <input type="text" id="rk-search" placeholder="Buscar jogador…" oninput="renderRkTbl()">
+      <table class="rk-table"><thead><tr><th>#</th><th>Jogador</th><th>Time</th><th>Pos</th><th>ECR</th><th>Δ ECR</th></tr></thead><tbody id="rk-tbody"></tbody></table>
     </div>
-
-    <!-- The Athletic section -->
-    <div class="card" style="margin-top:16px">
-      <h3>📰 Análise semanal — The Athletic</h3>
-      <p style="font-size:13px;opacity:.6;margin-bottom:10px">Cole aqui o conteúdo do artigo semanal do The Athletic. A IA vai usar essas informações nas suas análises.</p>
-      <textarea id="athletic-content" rows="8" placeholder="Cole aqui o texto do artigo do The Athletic desta semana (rankings, análises, notícias de lesões, etc.)…"></textarea>
-      <div class="grid-2">
-        <button class="btn btn-primary" onclick="saveAthleticContent()">Salvar conteúdo</button>
-        <button class="btn btn-danger btn-sm" style="width:100%;padding:12px" onclick="clearAthleticContent()">Limpar</button>
+    <div class="card" style="margin-top:12px">
+      <h3>📰 Jake Ciely / The Athletic — análise semanal</h3>
+      <textarea id="athletic-txt" rows="6" placeholder="Cole aqui a análise semanal do Jake Ciely (The Athletic)…"></textarea>
+      <div class="grid2">
+        <button class="btn btn-primary" onclick="saveAthletic()">Salvar</button>
+        <button class="btn btn-danger btn-sm" style="width:100%;padding:10px" onclick="clearAthletic()">Limpar</button>
       </div>
-      <div id="athletic-status" style="font-size:12px;opacity:.6;margin-top:6px"></div>
+      <div id="athletic-st" style="font-size:10px;opacity:.4;margin-top:4px"></div>
     </div>
   </div>
 
-  <!-- START/SIT -->
-  <div id="fb-start-sit" class="fb-tab-content" style="display:none">
+  <!-- LESÕES -->
+  <div class="tc" id="fb-lesoes">
     <div class="card">
-      <h3>🎯 Start/Sit</h3>
-      <select id="ss-league"></select>
-      <select id="ss-scoring"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
-      <div class="section-label">Matchup desta semana</div>
-      <textarea id="ss-matchup" rows="2" placeholder="Ex: WR1 vs CB shutdown ou WR2 com defesa fraca?"></textarea>
-      <div class="section-label">Jogadores em dúvida</div>
-      <input type="text" id="ss-players" placeholder="Ex: Davante Adams, Tee Higgins, DeVonta Smith" />
-      <button class="btn btn-primary" onclick="analyzeStartSit()">Analisar com IA ↗</button>
+      <h3>🏥 Alertas de lesão — seus rosters</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:10px">Busca automaticamente status dos jogadores nas suas ligas do Sleeper.</p>
+      <button class="btn btn-primary" onclick="fetchInjuries()">Atualizar lesões ↗</button>
     </div>
-    <div id="ss-response" class="ai-box" style="display:none"></div>
+    <div id="injury-list"><div class="no-data">Clique em "Atualizar lesões" para buscar.</div></div>
+  </div>
+
+  <!-- BYE WEEKS -->
+  <div class="tc" id="fb-bye">
+    <div class="card">
+      <h3>📅 Calendário de Bye Weeks</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:10px">Insira os times NFL dos seus jogadores titulares para visualizar semanas críticas.</p>
+      <textarea id="bye-players" rows="4" placeholder="Ex: KC, DAL, SF, PHI, BUF, DET, LAR, CIN (times separados por vírgula)"></textarea>
+      <button class="btn btn-primary" onclick="renderByeCalendar()">Gerar calendário</button>
+    </div>
+    <div id="bye-calendar"></div>
+  </div>
+
+  <!-- ADP -->
+  <div class="tc" id="fb-adp">
+    <div class="card">
+      <h3>📈 ADP — Fantasy Football Calculator</h3>
+      <div class="grid2">
+        <select id="adp-format">
+          <option value="standard">Standard</option>
+          <option value="half-ppr" selected>Half PPR</option>
+          <option value="ppr">PPR</option>
+        </select>
+        <select id="adp-teams">
+          <option value="10">10 times</option>
+          <option value="12" selected>12 times</option>
+          <option value="14">14 times</option>
+        </select>
+      </div>
+      <input type="text" id="adp-search" placeholder="Buscar jogador…" oninput="filterADP()">
+      <button class="btn btn-primary" onclick="fetchADP()">Buscar ADP ↗</button>
+    </div>
+    <div id="adp-results"><div class="no-data">Clique em "Buscar ADP".</div></div>
+  </div>
+
+  <!-- KTC -->
+  <div class="tc" id="fb-ktc">
+    <div class="card">
+      <h3>💰 KeepTradeCut — Trade Values Dynasty</h3>
+      <div class="grid2">
+        <select id="ktc-format">
+          <option value="1qb">1QB</option>
+          <option value="sf">Superflex</option>
+        </select>
+        <input type="text" id="ktc-search" placeholder="Buscar jogador…" oninput="filterKTC()">
+      </div>
+      <button class="btn btn-primary" onclick="fetchKTC()">Buscar valores KTC ↗</button>
+    </div>
+    <div id="ktc-results"><div class="no-data">Clique em "Buscar valores KTC".</div></div>
   </div>
 
   <!-- WAIVERS -->
-  <div id="fb-waivers" class="fb-tab-content" style="display:none">
+  <div class="tc" id="fb-waiver">
     <div class="card">
-      <h3>📋 Waivers / Add-Drop</h3>
-      <select id="wav-league"></select>
-      <select id="wav-scoring"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
-      <div class="section-label">Adicionar</div>
-      <input type="text" id="wav-add" placeholder="Jogador disponível no waiver" />
-      <div class="section-label">Dropar (opcional)</div>
-      <input type="text" id="wav-drop" placeholder="Jogador que você cortaria" />
-      <textarea id="wav-context" rows="2" placeholder="Contexto adicional…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeWaiver()">Analisar com IA ↗</button>
+      <h3>📋 Análise de Waivers / Add-Drop</h3>
+      <select id="wv-lg"></select>
+      <select id="wv-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+      <div class="lbl">Adicionar</div>
+      <input type="text" id="wv-add" placeholder="Jogador disponível"/>
+      <div class="lbl">Dropar (opcional)</div>
+      <input type="text" id="wv-drop" placeholder="Jogador que você cortaria"/>
+      <textarea id="wv-ctx" rows="2" placeholder="Contexto adicional…"></textarea>
+      <button class="btn btn-primary" onclick="doWaiver()">Analisar com IA ↗</button>
     </div>
-    <div id="wav-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="wv-resp"></div>
+  </div>
+
+  <!-- START/SIT -->
+  <div class="tc" id="fb-startsit">
+    <div class="card">
+      <h3>🎯 Start/Sit</h3>
+      <select id="ss-lg"></select>
+      <select id="ss-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+      <input type="text" id="ss-players" placeholder="Jogadores em dúvida (separados por vírgula)"/>
+      <textarea id="ss-ctx" rows="2" placeholder="Matchup / contexto da semana…"></textarea>
+      <button class="btn btn-primary" onclick="doStartSit()">Analisar com IA ↗</button>
+    </div>
+    <div class="ai-box" id="ss-resp"></div>
   </div>
 
   <!-- TRADE -->
-  <div id="fb-trade" class="fb-tab-content" style="display:none">
+  <div class="tc" id="fb-trade">
     <div class="card">
-      <h3>🔄 Trade</h3>
-      <select id="tr-league"></select>
-      <div class="grid-2">
-        <select id="tr-scoring"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+      <h3>🔄 Análise de Trade</h3>
+      <select id="tr-lg"></select>
+      <div class="grid2">
+        <select id="tr-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
         <select id="tr-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
       </div>
-      <div class="trade-sides">
-        <div class="trade-side"><h4>Você RECEBE</h4><textarea id="tr-receive" rows="4" placeholder="Ex: Tyreek Hill + pick 1.05"></textarea></div>
-        <div class="trade-side"><h4>Você DÁ</h4><textarea id="tr-give" rows="4" placeholder="Ex: Justin Jefferson + pick 1.12"></textarea></div>
+      <div class="tr-wrap">
+        <div class="tr-side"><h4>Você RECEBE</h4><textarea id="tr-rec" rows="4" placeholder="Ex: Tyreek Hill + pick 1.05"></textarea></div>
+        <div class="tr-side"><h4>Você DÁ</h4><textarea id="tr-give" rows="4" placeholder="Ex: Justin Jefferson"></textarea></div>
       </div>
-      <textarea id="tr-context" rows="2" placeholder="Contexto da liga…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeTrade('fb')">Analisar trade ↗</button>
+      <textarea id="tr-ctx" rows="2" placeholder="Contexto: posição na tabela, necessidades…"></textarea>
+      <button class="btn btn-primary" onclick="doTrade('fb')">Analisar trade ↗</button>
     </div>
-    <div id="tr-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="tr-resp"></div>
+    <div class="card" style="margin-top:10px">
+      <h3>📝 Histórico de trades</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:8px">Registre trades realizados para avaliar depois.</p>
+      <div class="grid2">
+        <input type="text" id="th-rec" placeholder="Você recebeu"/>
+        <input type="text" id="th-gave" placeholder="Você deu"/>
+      </div>
+      <input type="text" id="th-lg" placeholder="Liga"/>
+      <input type="text" id="th-date" placeholder="Data (ex: Jun/2025)"/>
+      <button class="btn btn-primary" onclick="addTradeHist()">Registrar trade</button>
+      <div id="trade-hist-list" style="margin-top:10px"></div>
+    </div>
   </div>
 
   <!-- DRAFT -->
-  <div id="fb-draft" class="fb-tab-content" style="display:none">
+  <div class="tc" id="fb-draft">
     <div class="card">
-      <h3>🏆 Draft</h3>
-      <div class="grid-2">
+      <h3>🏆 Assistente de Draft</h3>
+      <div class="grid2">
         <select id="dr-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
-        <select id="dr-scoring"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+        <select id="dr-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
       </div>
-      <div class="grid-2">
-        <div><div class="section-label">Nº times</div><input type="number" id="dr-teams" value="12" /></div>
-        <div><div class="section-label">Sua pick</div><input type="number" id="dr-pick" value="6" /></div>
+      <div class="grid2">
+        <div><div class="lbl">Nº times</div><input type="number" id="dr-teams" value="12"/></div>
+        <div><div class="lbl">Sua pick</div><input type="number" id="dr-pick" value="6"/></div>
       </div>
-      <div class="grid-2">
-        <select id="dr-superflex"><option value="no">Sem Superflex</option><option value="yes">Superflex</option></select>
-        <select id="dr-teprem"><option value="no">Sem TE Premium</option><option value="yes">TE Premium</option></select>
+      <div class="grid2">
+        <select id="dr-sf"><option value="no">1QB</option><option value="yes">Superflex</option></select>
+        <select id="dr-te"><option value="no">Sem TE Premium</option><option value="yes">TE Premium</option></select>
       </div>
-      <textarea id="dr-context" rows="4" placeholder="Picks já feitos / situação do draft…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeDraft('fb')">Conselho de draft ↗</button>
+      <textarea id="dr-ctx" rows="4" placeholder="Situação do draft, picks já feitos…"></textarea>
+      <button class="btn btn-primary" onclick="doDraft('fb')">Conselho de draft ↗</button>
     </div>
-    <div id="dr-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="dr-resp"></div>
   </div>
 
-  <!-- ANALYZE -->
-  <div id="fb-analyze" class="fb-tab-content" style="display:none">
+  <!-- PLAYOFFS -->
+  <div class="tc" id="fb-playoff">
     <div class="card">
-      <h3>🧠 Análise livre</h3>
-      <select id="an-league-fb"></select>
-      <div class="grid-2">
-        <select id="an-scoring-fb"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
-        <select id="an-type-fb"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
-      </div>
-      <textarea id="an-question-fb" rows="6" placeholder="Descreva qualquer situação da sua liga…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeFreeFb()">Perguntar ao expert ↗</button>
+      <h3>🏆 Simulador de Playoffs</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:10px">Para ligas do Sleeper busca automaticamente. Para Fleaflicker, insira manualmente.</p>
+      <button class="btn btn-primary" onclick="loadPlayoffSim()">Carregar simulação ↗</button>
     </div>
-    <div id="an-response-fb" class="ai-box" style="display:none"></div>
+    <div id="playoff-content"><div class="no-data">Clique em "Carregar simulação".</div></div>
+    <div class="card" style="margin-top:10px">
+      <h3>➕ Adicionar liga Fleaflicker manualmente</h3>
+      <input type="text" id="pf-name" placeholder="Nome da liga"/>
+      <div class="grid3">
+        <input type="number" id="pf-w" placeholder="Vitórias"/>
+        <input type="number" id="pf-l" placeholder="Derrotas"/>
+        <input type="number" id="pf-games" placeholder="Jogos totais"/>
+      </div>
+      <input type="number" id="pf-pf" placeholder="Pontos marcados (total)"/>
+      <input type="number" id="pf-playoff-spots" placeholder="Vagas no playoff"/>
+      <button class="btn btn-primary" onclick="addManualPlayoff()">Adicionar</button>
+    </div>
   </div>
 
-  <!-- HISTORY -->
-  <div id="fb-history" class="fb-tab-content" style="display:none">
-    <div class="section-label">Análises recentes</div>
-    <div id="fb-history-list"><div class="no-data">Nenhuma análise ainda.</div></div>
+  <!-- COMPARAR ROSTERS -->
+  <div class="tc" id="fb-comparar">
+    <div class="card">
+      <h3>⚖️ Comparador de Rosters</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:8px">Selecione duas ligas para comparar seus rosters e necessidades.</p>
+      <div class="grid2">
+        <div><div class="lbl">Liga A</div><select id="cmp-a"></select></div>
+        <div><div class="lbl">Liga B</div><select id="cmp-b"></select></div>
+      </div>
+      <textarea id="cmp-roster-a" rows="4" placeholder="Roster Liga A (um jogador por linha)"></textarea>
+      <textarea id="cmp-roster-b" rows="4" placeholder="Roster Liga B (um jogador por linha)"></textarea>
+      <button class="btn btn-primary" onclick="doCompare()">Comparar com IA ↗</button>
+    </div>
+    <div class="ai-box" id="cmp-resp"></div>
+  </div>
+
+  <!-- ANÁLISE IA -->
+  <div class="tc" id="fb-ia">
+    <div class="card">
+      <h3>🧠 Análise livre com IA</h3>
+      <select id="ia-fb-lg"></select>
+      <div class="grid2">
+        <select id="ia-fb-sc"><option value="ppr">PPR</option><option value="half">Half PPR</option><option value="standard">Standard</option></select>
+        <select id="ia-fb-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option><option value="dynasty-idp">Dynasty IDP</option></select>
+      </div>
+      <textarea id="ia-fb-q" rows="6" placeholder="Descreva qualquer situação da sua liga…"></textarea>
+      <button class="btn btn-primary" onclick="doFreeAI('fb')">Perguntar ao expert ↗</button>
+    </div>
+    <div class="ai-box" id="ia-fb-resp"></div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="tc" id="fb-hist">
+    <div class="lbl">Análises recentes</div>
+    <div id="fb-hist-list"><div class="no-data">Nenhuma análise ainda.</div></div>
   </div>
 </div>
 
-<!-- ===== BASKETBALL ===== -->
-<div id="basketball-panel" class="panel rats-theme">
-  <div class="header">
-    <div class="logo-circle rats" id="logo-rats"><span>🐀</span></div>
-    <div class="header-text">
-      <h1>MINAS GERAIS RATS</h1>
-      <p>Fantasy Basketball · ESPN + Fleaflicker</p>
-    </div>
+<!-- ══ BASKETBALL ════════════════════════════════════════════════════ -->
+<div class="panel bb-panel" id="panel-bb">
+  <div class="p-header">
+    <div class="logo-wrap" id="logo-bb">🐀</div>
+    <div><h1>MINAS GERAIS RATS</h1><p>Fantasy Basketball · ESPN + Fleaflicker</p></div>
   </div>
-  <div class="tabs" id="bb-tabs">
-    <div class="tab active" onclick="bbTab('leagues')">Ligas</div>
-    <div class="tab" onclick="bbTab('start-sit')">Start/Sit</div>
-    <div class="tab" onclick="bbTab('waivers')">Waivers</div>
-    <div class="tab" onclick="bbTab('trade')">Trade</div>
-    <div class="tab" onclick="bbTab('draft')">Draft</div>
-    <div class="tab" onclick="bbTab('analyze')">Análise IA</div>
-    <div class="tab" onclick="bbTab('history')">Histórico</div>
+  <div class="tabs" id="tabs-bb">
+    <div class="tab active" onclick="setTab('bb','dash')">Dashboard</div>
+    <div class="tab" onclick="setTab('bb','ligas')">Ligas</div>
+    <div class="tab" onclick="setTab('bb','stream')">Streaming</div>
+    <div class="tab" onclick="setTab('bb','stats')">NBA Stats</div>
+    <div class="tab" onclick="setTab('bb','startsit')">Start/Sit</div>
+    <div class="tab" onclick="setTab('bb','waiver')">Waivers</div>
+    <div class="tab" onclick="setTab('bb','trade')">Trade</div>
+    <div class="tab" onclick="setTab('bb','draft')">Draft</div>
+    <div class="tab" onclick="setTab('bb','ia')">Análise IA</div>
+    <div class="tab" onclick="setTab('bb','hist')">Histórico</div>
   </div>
 
-  <div id="bb-leagues" class="bb-tab-content">
-    <div class="fetch-bar rats-theme"><span class="spinner"></span><span id="espn-fetch-status">Carregando ESPN Basketball…</span></div>
-    <div class="fetch-bar rats-theme"><span class="spinner"></span><span id="ffl-bb-fetch-status">Carregando Fleaflicker NBA…</span></div>
-    <div class="section-label">Suas ligas</div>
-    <div id="bb-league-list"></div>
-    <div class="card" style="margin-top:16px">
+  <!-- BB DASHBOARD -->
+  <div class="tc active" id="bb-dash">
+    <div class="lbl">Visão geral</div>
+    <div id="bb-dash-content"><div class="no-data">Carregando…</div></div>
+  </div>
+
+  <!-- BB LIGAS -->
+  <div class="tc" id="bb-ligas">
+    <div class="sbar green"><span>✓</span><span id="st-espn">ESPN: Liga NBA pré-cadastrada</span></div>
+    <div class="sbar green"><span>✓</span><span>Fleaflicker NBA: liga dynasty pré-cadastrada</span></div>
+    <div class="lbl">Suas ligas</div>
+    <div id="bb-lg-list"></div>
+    <div class="card" style="margin-top:10px">
       <h3>➕ Adicionar liga manual</h3>
-      <input type="text" id="bb-fl-name" placeholder="Nome da liga" />
-      <div class="grid-2">
-        <select id="bb-fl-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option></select>
-        <select id="bb-fl-scoring"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <input type="text" id="add-bb-name" placeholder="Nome da liga"/>
+      <div class="grid2">
+        <select id="add-bb-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option></select>
+        <select id="add-bb-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
       </div>
-      <input type="number" id="bb-fl-teams" placeholder="Nº de times" />
-      <button class="btn btn-primary" onclick="addManualBBLeague()">Adicionar</button>
+      <input type="number" id="add-bb-teams" placeholder="Nº de times"/>
+      <button class="btn btn-primary" onclick="addLgBb()">Adicionar</button>
     </div>
   </div>
 
-  <div id="bb-start-sit" class="bb-tab-content" style="display:none">
+  <!-- BB STREAMING -->
+  <div class="tc" id="bb-stream">
+    <div class="card">
+      <h3>📡 Assistente de Streaming Semanal</h3>
+      <p style="font-size:11px;opacity:.5;margin-bottom:10px">Busca jogadores com 4+ jogos na semana atual para streaming.</p>
+      <select id="stream-lg"></select>
+      <select id="stream-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <textarea id="stream-need" rows="2" placeholder="Categorias que precisa reforçar (ex: steals, blocks, 3pts)…"></textarea>
+      <button class="btn btn-primary" onclick="fetchStreaming()">Buscar opções de streaming ↗</button>
+    </div>
+    <div id="stream-results"><div class="no-data">Clique em "Buscar opções".</div></div>
+    <div class="ai-box" id="stream-ai"></div>
+  </div>
+
+  <!-- NBA STATS -->
+  <div class="tc" id="bb-stats">
+    <div class="card">
+      <h3>📊 NBA Stats API</h3>
+      <input type="text" id="nba-search" placeholder="Buscar jogador (ex: LeBron James)…"/>
+      <select id="nba-season">
+        <option value="2024-25">2024-25</option>
+        <option value="2023-24">2023-24</option>
+      </select>
+      <button class="btn btn-primary" onclick="fetchNBAStats()">Buscar stats ↗</button>
+    </div>
+    <div id="nba-stats-results"><div class="no-data">Busque um jogador.</div></div>
+  </div>
+
+  <!-- BB START/SIT -->
+  <div class="tc" id="bb-startsit">
     <div class="card">
       <h3>🎯 Start/Sit Basketball</h3>
-      <select id="bb-ss-league"></select>
-      <select id="bb-ss-scoring"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
-      <input type="text" id="bb-ss-players" placeholder="Jogadores em dúvida" />
-      <textarea id="bb-ss-context" rows="3" placeholder="Agenda da semana, matchups…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeBBStartSit()">Analisar ↗</button>
+      <select id="bb-ss-lg"></select>
+      <select id="bb-ss-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <input type="text" id="bb-ss-players" placeholder="Jogadores em dúvida"/>
+      <textarea id="bb-ss-ctx" rows="3" placeholder="Agenda da semana, matchups, categorias…"></textarea>
+      <button class="btn btn-primary" onclick="doBBStartSit()">Analisar ↗</button>
     </div>
-    <div id="bb-ss-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="bb-ss-resp"></div>
   </div>
 
-  <div id="bb-waivers" class="bb-tab-content" style="display:none">
+  <!-- BB WAIVERS -->
+  <div class="tc" id="bb-waiver">
     <div class="card">
       <h3>📋 Waivers / Streaming</h3>
-      <select id="bb-wav-league"></select>
-      <select id="bb-wav-scoring"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
-      <input type="text" id="bb-wav-add" placeholder="Jogador disponível" />
-      <input type="text" id="bb-wav-drop" placeholder="Dropar (opcional)" />
-      <textarea id="bb-wav-context" rows="2" placeholder="Estratégia, categorias fracas…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeBBWaiver()">Analisar ↗</button>
+      <select id="bb-wv-lg"></select>
+      <select id="bb-wv-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <input type="text" id="bb-wv-add" placeholder="Adicionar"/>
+      <input type="text" id="bb-wv-drop" placeholder="Dropar (opcional)"/>
+      <textarea id="bb-wv-ctx" rows="2" placeholder="Estratégia, categorias fracas…"></textarea>
+      <button class="btn btn-primary" onclick="doBBWaiver()">Analisar ↗</button>
     </div>
-    <div id="bb-wav-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="bb-wv-resp"></div>
   </div>
 
-  <div id="bb-trade" class="bb-tab-content" style="display:none">
+  <!-- BB TRADE -->
+  <div class="tc" id="bb-trade">
     <div class="card">
       <h3>🔄 Trade Basketball</h3>
-      <select id="bb-tr-league"></select>
-      <div class="grid-2">
-        <select id="bb-tr-scoring"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <select id="bb-tr-lg"></select>
+      <div class="grid2">
+        <select id="bb-tr-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
         <select id="bb-tr-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option></select>
       </div>
-      <div class="trade-sides">
-        <div class="trade-side"><h4>Você RECEBE</h4><textarea id="bb-tr-receive" rows="4" placeholder="Ex: LeBron + Randle"></textarea></div>
-        <div class="trade-side"><h4>Você DÁ</h4><textarea id="bb-tr-give" rows="4" placeholder="Ex: Tatum + Chet"></textarea></div>
+      <div class="tr-wrap">
+        <div class="tr-side"><h4>Você RECEBE</h4><textarea id="bb-tr-rec" rows="4" placeholder="Ex: LeBron + Randle"></textarea></div>
+        <div class="tr-side"><h4>Você DÁ</h4><textarea id="bb-tr-give" rows="4" placeholder="Ex: Tatum + Chet"></textarea></div>
       </div>
-      <textarea id="bb-tr-context" rows="2" placeholder="Contexto…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeTrade('bb')">Analisar trade ↗</button>
+      <textarea id="bb-tr-ctx" rows="2" placeholder="Contexto…"></textarea>
+      <button class="btn btn-primary" onclick="doTrade('bb')">Analisar trade ↗</button>
     </div>
-    <div id="bb-tr-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="bb-tr-resp"></div>
   </div>
 
-  <div id="bb-draft" class="bb-tab-content" style="display:none">
+  <!-- BB DRAFT -->
+  <div class="tc" id="bb-draft">
     <div class="card">
       <h3>🏆 Draft Basketball</h3>
-      <div class="grid-2">
+      <div class="grid2">
         <select id="bb-dr-type"><option value="redraft">Redraft</option><option value="dynasty">Dynasty</option></select>
-        <select id="bb-dr-scoring"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+        <select id="bb-dr-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
       </div>
-      <div class="grid-2">
-        <div><div class="section-label">Nº times</div><input type="number" id="bb-dr-teams" value="12" /></div>
-        <div><div class="section-label">Sua pick</div><input type="number" id="bb-dr-pick" value="6" /></div>
+      <div class="grid2">
+        <div><div class="lbl">Nº times</div><input type="number" id="bb-dr-teams" value="12"/></div>
+        <div><div class="lbl">Sua pick</div><input type="number" id="bb-dr-pick" value="6"/></div>
       </div>
-      <textarea id="bb-dr-context" rows="4" placeholder="Situação do draft…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeDraft('bb')">Conselho ↗</button>
+      <textarea id="bb-dr-ctx" rows="4" placeholder="Situação do draft…"></textarea>
+      <button class="btn btn-primary" onclick="doDraft('bb')">Conselho ↗</button>
     </div>
-    <div id="bb-dr-response" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="bb-dr-resp"></div>
   </div>
 
-  <div id="bb-analyze" class="bb-tab-content" style="display:none">
+  <!-- BB IA -->
+  <div class="tc" id="bb-ia">
     <div class="card">
       <h3>🧠 Análise livre</h3>
-      <select id="an-league-bb"></select>
-      <select id="an-scoring-bb"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
-      <textarea id="an-question-bb" rows="6" placeholder="Descreva qualquer situação…"></textarea>
-      <button class="btn btn-primary" onclick="analyzeFreeBb()">Perguntar ao expert ↗</button>
+      <select id="ia-bb-lg"></select>
+      <select id="ia-bb-sc"><option value="h2h-points">H2H Points</option><option value="h2h-cat">H2H Categories</option></select>
+      <textarea id="ia-bb-q" rows="6" placeholder="Descreva qualquer situação…"></textarea>
+      <button class="btn btn-primary" onclick="doFreeAI('bb')">Perguntar ao expert ↗</button>
     </div>
-    <div id="an-response-bb" class="ai-box" style="display:none"></div>
+    <div class="ai-box" id="ia-bb-resp"></div>
   </div>
 
-  <div id="bb-history" class="bb-tab-content" style="display:none">
-    <div class="section-label">Análises recentes</div>
-    <div id="bb-history-list"><div class="no-data">Nenhuma análise ainda.</div></div>
+  <!-- BB HISTÓRICO -->
+  <div class="tc" id="bb-hist">
+    <div class="lbl">Análises recentes</div>
+    <div id="bb-hist-list"><div class="no-data">Nenhuma análise ainda.</div></div>
   </div>
 </div>
 
 <script>
+// ══ CONSTANTS ════════════════════════════════════════════════════════
+const API_KEY = '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';
+const GCLIENT = '941630133751-li1lm82bhcur6cu8ju1ersleas5965t7.apps.googleusercontent.com';
+const DRIVE_FILE = 'fantasyManagerVB_dados.json';
+const SLEEPER_USER = 'vitorfrb';
 const LOGO_MINERS = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Paran%C3%A1%20Miners.jpeg';
 const LOGO_RATS = 'https://raw.githubusercontent.com/viitorfb-source/fantasymanager/main/assets/Minas%20Gerais%20Rats.jpg';
-const ANTHROPIC_KEY = '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';
-const GOOGLE_CLIENT_ID = '941630133751-li1lm82bhcur6cu8ju1ersleas5965t7.apps.googleusercontent.com';
-const DRIVE_FILE_NAME = 'fantasyManager_dados.json';
-const SLEEPER_USER = 'vitorfrb';
-const FFL_USER_ID = 1279129;
-const ESPN_BB_LEAGUE_ID = 61189009;
-const CORS_PROXY  = 'https://corsproxy.io/?url=';
-const ESPN_BB_SEASON = 2026;
-const FFL_BASE = 'https://www.fleaflicker.com/api';
 
-let state = {
-  sport: 'football',
-  fb: { leagues: [] },
-  bb: { leagues: [] },
-  history: { fb: [], bb: [] },
-  rankings: [],       // [{label, type, players:[]}]
-  athletic: ''
+const FFL_FB = [
+  {id:'ffl_325034',name:'DEFINITIVE DYNASTY FOOTBALL',platform:'fleaflicker',type:'dynasty-idp',scoring:'ppr',teams:12},
+  {id:'ffl_184106',name:'Tim Tebow',platform:'fleaflicker',type:'dynasty',scoring:'half',teams:16},
+  {id:'ffl_325954',name:'MFH Dynasty',platform:'fleaflicker',type:'dynasty',scoring:'half',teams:12}
+];
+const FFL_BB = [{id:'ffl_bb_26190',name:'Liga NBA Fleaflicker',platform:'fleaflicker',type:'dynasty',scoring:'h2h-points',teams:null}];
+const ESPN_BB = {id:'espn_61189009',name:'Liga NBA ESPN',platform:'espn',type:'redraft',scoring:'h2h-points',teams:12};
+
+// NFL bye weeks 2025 (approximate)
+const NFL_BYES = {
+  'ARI':7,'ATL':11,'BAL':14,'BUF':12,'CAR':11,'CHI':7,'CIN':12,'CLE':10,
+  'DAL':7,'DEN':14,'DET':5,'GB':13,'HOU':14,'IND':14,'JAC':12,'KC':6,
+  'LAC':5,'LAR':6,'LV':10,'MIA':6,'MIN':6,'NE':14,'NO':11,'NYG':11,
+  'NYJ':12,'PHI':5,'PIT':9,'SEA':9,'SF':9,'TB':11,'TEN':12,'WAS':14
 };
 
-let activeRankingIdx = 0;
-let rankFilter = 'ALL';
-
-const FFL_PRESET_LEAGUES = {
-  fb: [
-    { id:'ffl_nfl_325034', ffl_id:325034, ffl_team_id:1648428, name:'DEFINITIVE DYNASTY FOOTBALL', platform:'fleaflicker', sport:'nfl', type:'dynasty-idp', scoring:'ppr', teams:12 },
-    { id:'ffl_nfl_184106', ffl_id:184106, ffl_team_id:null, name:'Tim Tebow', platform:'fleaflicker', sport:'nfl', type:'dynasty', scoring:'half', teams:16 },
-    { id:'ffl_nfl_325954', ffl_id:325954, ffl_team_id:null, name:'MFH Dynasty', platform:'fleaflicker', sport:'nfl', type:'dynasty', scoring:'half', teams:12 },
-  ],
-  bb: [
-    { id:'ffl_nba_26190', ffl_id:26190, ffl_team_id:null, name:'Liga NBA Fleaflicker (Dynasty)', platform:'fleaflicker', sport:'nba', type:'dynasty', scoring:'h2h-points', teams:null },
-  ]
+// NBA schedule (games per week for streaming — mock current week)
+const NBA_GAMES_THIS_WEEK = {
+  'LAL':4,'GSW':4,'BOS':3,'MIL':4,'DEN':3,'PHX':4,'MIA':3,'PHI':3,
+  'BKN':4,'NYK':3,'CHI':3,'CLE':4,'ATL':3,'TOR':3,'IND':4,'DET':3,
+  'MEM':4,'NOP':3,'SAS':4,'OKC':4,'POR':3,'SAC':3,'MIN':4,'UTA':3,
+  'ORL':4,'WAS':3,'CHA':4,'DAL':4,'HOU':4,'LAC':3
 };
 
-function applyLogos() {
-  const setLogo = (elId, src, fallback) => {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    const img = document.createElement('img');
-    img.src = src;
-    img.style.cssText = 'width:64px;height:64px;object-fit:contain;border-radius:50%';
-    img.onerror = () => { el.innerHTML = fallback; };
-    el.innerHTML = '';
-    el.appendChild(img);
-  };
-  const setBtnLogo = (elId, src, text) => {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    const img = document.createElement('img');
-    img.src = src;
-    img.style.cssText = 'width:26px;height:26px;object-fit:contain;border-radius:50%;vertical-align:middle;margin-right:6px';
-    img.onerror = () => {};
-    el.insertBefore(img, el.firstChild);
-  };
-  setLogo('logo-miners', LOGO_MINERS, '⛏️');
-  setLogo('logo-rats', LOGO_RATS, '🐀');
-  setBtnLogo('btn-football', LOGO_MINERS, '🏈');
-  setBtnLogo('btn-basketball', LOGO_RATS, '🏀');
-}
+// ══ STATE ════════════════════════════════════════════════════════════
+let S = {
+  fb:{leagues:[]}, bb:{leagues:[]},
+  history:{fb:[],bb:[]},
+  rankings:[], athletic:'',
+  tradeHistory:[],
+  manualPlayoffs:[],
+  sleeperLeagues:[]
+};
+let gToken=null, driveId=null;
+let rkIdx=0, rkFilter='ALL';
+let adpData=[], ktcData=[];
 
-// ── GOOGLE AUTH & DRIVE ───────────────────────────────────────────────
-let googleToken = null;
-let driveFileId = null;
-let currentUser = null;
-
-function signInGoogle() {
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
-    callback: async (resp) => {
-      if (resp.error) return;
-      googleToken = resp.access_token;
-      await loadUserProfile();
-      await syncFromDrive();
-    }
-  });
-  client.requestAccessToken();
-}
-
-async function loadUserProfile() {
-  try {
-    const r = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${googleToken}` }
-    });
-    currentUser = await r.json();
-    const area = document.getElementById('auth-user-area');
-    area.innerHTML = `
-      <img src="${currentUser.picture}" alt="">
-      <span style="color:#eee">${currentUser.name}</span>
-      <span class="drive-status" id="drive-status">Sincronizando…</span>
-      <button class="btn-signout" onclick="signOut()">Sair</button>`;
-  } catch(e) {}
-}
-
-function signOut() {
-  googleToken = null; currentUser = null; driveFileId = null;
-  const area = document.getElementById('auth-user-area');
-  area.innerHTML = `<button class="btn-google" onclick="signInGoogle()">
-    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-    Entrar com Google</button>`;
-}
-
-async function syncFromDrive() {
-  if (!googleToken) return;
-  setDriveStatus('Carregando do Drive…');
-  try {
-    const search = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}' and trashed=false&fields=files(id,name)`,
-      { headers: { Authorization: `Bearer ${googleToken}` } }
-    );
-    const { files } = await search.json();
-    if (files && files.length) {
-      driveFileId = files[0].id;
-      const content = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
-        { headers: { Authorization: `Bearer ${googleToken}` } }
-      );
-      const data = await content.json();
-      if (data.fb) state.fb.leagues = data.fb.leagues || [];
-      if (data.bb) state.bb.leagues = data.bb.leagues || [];
-      if (data.history) state.history = data.history;
-      if (data.rankings) state.rankings = data.rankings;
-      if (data.athletic) state.athletic = data.athletic;
-      FFL_PRESET_LEAGUES.fb.forEach(lg => { if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg); });
-      FFL_PRESET_LEAGUES.bb.forEach(lg => { if (!state.bb.leagues.find(x=>x.id===lg.id)) state.bb.leagues.push(lg); });
-      renderFBLeagues(); renderBBLeagues(); populateLeagueSelects();
-      renderHistory('fb'); renderHistory('bb');
-      loadAthleticContent();
-      if (state.rankings.length) showRankingsLoaded();
-      setDriveStatus('✓ Sincronizado');
-    } else {
-      await saveToDrive();
-    }
-  } catch(e) { setDriveStatus('Erro no Drive'); }
-}
-
-async function saveToDrive() {
-  if (!googleToken) { saveState(); return; }
-  setDriveStatus('Salvando…');
-  const payload = JSON.stringify({
-    fb: { leagues: state.fb.leagues },
-    bb: { leagues: state.bb.leagues },
-    history: state.history,
-    rankings: state.rankings,
-    athletic: state.athletic
-  });
-  try {
-    if (driveFileId) {
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
-        body: payload
-      });
-    } else {
-      const meta = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })
-      });
-      const { id } = await meta.json();
-      driveFileId = id;
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${googleToken}`, 'Content-Type': 'application/json' },
-        body: payload
-      });
-    }
-    saveState();
-    setDriveStatus('✓ Salvo no Drive');
-  } catch(e) { saveState(); setDriveStatus('Erro ao salvar'); }
-}
-
-function setDriveStatus(msg) {
-  const el = document.getElementById('drive-status');
-  if (el) el.textContent = msg;
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────
+// ══ INIT ═════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  applyLogos();
-  loadState();
-  fetchSleeperLeagues();
-  fetchFleaflickerLeagues();
-  fetchESPNLeague();
-  renderFBLeagues();
-  renderBBLeagues();
-  renderHistory('fb');
-  renderHistory('bb');
-  populateLeagueSelects();
-  loadAthleticContent();
-  if (state.rankings.length) showRankingsLoaded();
+  initLogos();
+  loadLS();
+  fetchSleeper();
+  renderAll();
 });
 
-function loadState() {
-  try {
-    const s = localStorage.getItem('fantasyManagerState');
-    if (s) {
-      const p = JSON.parse(s);
-      state.fb.leagues = p.fb?.leagues || [];
-      state.bb.leagues = p.bb?.leagues || [];
-      state.history = p.history || { fb:[], bb:[] };
-      state.rankings = p.rankings || [];
-      state.athletic = p.athletic || '';
-    }
-  } catch(e) {}
-  FFL_PRESET_LEAGUES.fb.forEach(lg => { if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg); });
-  FFL_PRESET_LEAGUES.bb.forEach(lg => { if (!state.bb.leagues.find(x=>x.id===lg.id)) state.bb.leagues.push(lg); });
-}
-
-function saveState() {
-  localStorage.setItem('fantasyManagerState', JSON.stringify({
-    fb: { leagues: state.fb.leagues },
-    bb: { leagues: state.bb.leagues },
-    history: state.history,
-    rankings: state.rankings,
-    athletic: state.athletic
-  }));
-  if (googleToken) saveToDrive();
-}
-
-// ── RANKINGS CSV IMPORT ───────────────────────────────────────────────
-function handleRankingsUpload(e) {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
-  let loaded = 0;
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const text = ev.target.result;
-      const parsed = parseRankingsCSV(text, file.name);
-      if (parsed) {
-        const existing = state.rankings.findIndex(r => r.label === parsed.label);
-        if (existing >= 0) state.rankings[existing] = parsed;
-        else state.rankings.push(parsed);
-      }
-      loaded++;
-      if (loaded === files.length) {
-        saveState();
-        showRankingsLoaded();
-        document.getElementById('rankings-status').innerHTML =
-          `<p style="color:#4ade80;font-size:13px;margin-top:8px">✓ ${files.length} arquivo(s) importado(s) com sucesso!</p>`;
-      }
-    };
-    reader.readAsText(file, 'utf-8');
+function initLogos() {
+  const setL = (id, src, fb) => {
+    const el=document.getElementById(id);
+    const img=document.createElement('img');
+    img.src=src; img.onerror=()=>el.textContent=fb;
+    el.innerHTML=''; el.appendChild(img);
+  };
+  setL('logo-fb', LOGO_MINERS, '⛏️');
+  setL('logo-bb', LOGO_RATS, '🐀');
+  ['fb','bb'].forEach(s=>{
+    const btn=document.getElementById('btn-'+s);
+    const img=document.createElement('img');
+    img.src=s==='fb'?LOGO_MINERS:LOGO_RATS;
+    img.style.cssText='width:22px;height:22px;border-radius:50%;object-fit:contain';
+    img.onerror=()=>img.remove();
+    btn.insertBefore(img, btn.firstChild);
   });
 }
 
-function parseRankingsCSV(text, filename) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-  const headerIdx = lines.findIndex(l => l.toLowerCase().includes('rank,player'));
-  if (headerIdx < 0) return null;
+// ══ STORAGE ══════════════════════════════════════════════════════════
+function loadLS() {
+  try {
+    const d=localStorage.getItem('fmvb');
+    if(d){const p=JSON.parse(d);Object.assign(S,p);}
+  } catch(e){}
+  FFL_FB.forEach(l=>{if(!S.fb.leagues.find(x=>x.id===l.id))S.fb.leagues.push(l);});
+  FFL_BB.forEach(l=>{if(!S.bb.leagues.find(x=>x.id===l.id))S.bb.leagues.push(l);});
+  if(!S.bb.leagues.find(x=>x.id===ESPN_BB.id))S.bb.leagues.push(ESPN_BB);
+  if(!S.tradeHistory)S.tradeHistory=[];
+  if(!S.manualPlayoffs)S.manualPlayoffs=[];
+  if(S.athletic){const el=document.getElementById('athletic-txt');if(el)el.value=S.athletic;}
+}
 
-  // detect type from first player names
-  const dataLines = lines.slice(headerIdx + 1).filter(l => l && !l.startsWith('Rank'));
-  const players = dataLines.map(line => {
-    const cols = line.split(',');
-    if (cols.length < 4) return null;
-    const rank = parseInt(cols[0]) || 0;
-    const name = (cols[1] || '').trim();
-    const team = (cols[2] || '').trim();
-    const pos  = (cols[3] || '').trim();
-    const ecr  = parseInt(cols[4]) || rank;
-    const vsEcr = parseInt(cols[5]) || 0;
-    return { rank, name, team, pos, ecr, vsEcr };
-  }).filter(Boolean);
+function save(){
+  localStorage.setItem('fmvb',JSON.stringify(S));
+  if(gToken)saveDrive();
+}
 
-  if (!players.length) return null;
+// ══ GOOGLE AUTH ═══════════════════════════════════════════════════════
+function signIn(){
+  google.accounts.oauth2.initTokenClient({
+    client_id:GCLIENT,
+    scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
+    callback:async r=>{
+      if(r.error)return;
+      gToken=r.access_token;
+      const u=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:`Bearer ${gToken}`}}).then(r=>r.json());
+      document.getElementById('auth-area').innerHTML=`<img src="${u.picture}"><span style="color:#eee;font-size:11px">${u.name}</span><span class="drive-st" id="drive-st">Sync…</span><button class="btn-signout" onclick="signOut()">Sair</button>`;
+      await loadDrive();
+    }
+  }).requestAccessToken();
+}
+function signOut(){gToken=null;driveId=null;document.getElementById('auth-area').innerHTML=`<button class="btn-google" onclick="signIn()"><svg width="13" height="13" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Entrar com Google</button>`;}
+async function loadDrive(){
+  try{
+    const {files}=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE}' and trashed=false&fields=files(id)`,{headers:{Authorization:`Bearer ${gToken}`}}).then(r=>r.json());
+    if(files?.length){
+      driveId=files[0].id;
+      const d=await fetch(`https://www.googleapis.com/drive/v3/files/${driveId}?alt=media`,{headers:{Authorization:`Bearer ${gToken}`}}).then(r=>r.json());
+      Object.assign(S,d);
+      FFL_FB.forEach(l=>{if(!S.fb.leagues.find(x=>x.id===l.id))S.fb.leagues.push(l);});
+      FFL_BB.forEach(l=>{if(!S.bb.leagues.find(x=>x.id===l.id))S.bb.leagues.push(l);});
+      if(!S.bb.leagues.find(x=>x.id===ESPN_BB.id))S.bb.leagues.push(ESPN_BB);
+      renderAll();
+      if(S.rankings?.length)showRkLoaded();
+      if(S.athletic){const el=document.getElementById('athletic-txt');if(el)el.value=S.athletic;}
+      setDSt('✓ Sync');
+    } else await saveDrive();
+  }catch(e){setDSt('Drive err');}
+}
+async function saveDrive(){
+  if(!gToken)return;
+  const body=JSON.stringify(S);
+  try{
+    if(driveId){
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveId}?uploadType=media`,{method:'PATCH',headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},body});
+    } else {
+      const m=await fetch('https://www.googleapis.com/drive/v3/files',{method:'POST',headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},body:JSON.stringify({name:DRIVE_FILE,mimeType:'application/json'})}).then(r=>r.json());
+      driveId=m.id;
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveId}?uploadType=media`,{method:'PATCH',headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},body});
+    }
+    setDSt('✓ Salvo');
+  }catch(e){setDSt('Err save');}
+}
+function setDSt(m){const el=document.getElementById('drive-st');if(el)el.textContent=m;}
 
-  // guess label from filename or content
-  const fn = filename.toLowerCase();
-  let label = filename.replace(/\.csv$/i,'').replace(/FantasyProsexpertrankings/i,'Rankings').trim();
-  if (fn.includes('rookie') || fn.includes(' 1')) label = 'Rookies/Dynasty';
-  else if (fn.includes('overall') || fn.includes('ovr')) label = 'Overall (Redraft)';
-  else {
-    // guess from top players: if top 5 has rookies → dynasty
-    const topNames = players.slice(0,5).map(p=>p.name);
-    const knownVets = ['Bijan Robinson','Jahmyr Gibbs','Justin Jefferson','CeeDee Lamb','Ja\'Marr Chase'];
-    const hasVet = topNames.some(n => knownVets.some(v => n.includes(v.split(' ')[0])));
-    label = hasVet ? 'Overall (Redraft)' : 'Rookies / Dynasty';
+// ══ SLEEPER ═══════════════════════════════════════════════════════════
+async function fetchSleeper(){
+  const st=document.getElementById('st-sleeper'), bar=document.getElementById('bar-sleeper');
+  try{
+    const u=await fetch(`https://api.sleeper.app/v1/user/${SLEEPER_USER}`).then(r=>r.json());
+    let lgs=[];
+    for(const yr of ['2025','2024']){
+      const ls=await fetch(`https://api.sleeper.app/v1/user/${u.user_id}/leagues/nfl/${yr}`).then(r=>r.json());
+      if(ls?.length){lgs=ls;break;}
+    }
+    S.sleeperLeagues=lgs;
+    lgs.forEach(l=>{
+      const lg={id:l.league_id,name:l.name,platform:'sleeper',type:l.settings?.type===2?'dynasty':'redraft',
+        scoring:l.scoring_settings?.rec===1?'ppr':l.scoring_settings?.rec===0.5?'half':'standard',
+        teams:l.total_rosters,sleeper_id:l.league_id};
+      if(!S.fb.leagues.find(x=>x.id===lg.id))S.fb.leagues.push(lg);
+    });
+    save(); renderFbLg(); populateSels();
+    st.textContent=`${lgs.length} liga(s) Sleeper ✓`;
+    bar.className='sbar green'; bar.querySelector('.spinner')?.remove();
+    renderDashFb();
+  }catch(e){
+    st.textContent='Sleeper: erro. Adicione manualmente.';
+    bar.className='sbar red';
   }
-
-  return { label, players, imported: new Date().toLocaleDateString('pt-BR') };
 }
 
-function showRankingsLoaded() {
-  if (!state.rankings.length) return;
-  document.getElementById('rankings-loaded').style.display = 'block';
-
-  // tabs selector
-  const tabSel = document.getElementById('rankings-tabs-selector');
-  tabSel.innerHTML = state.rankings.map((r,i) =>
-    `<button class="rank-filter-btn ${i===activeRankingIdx?'active':''}" onclick="switchRankingTab(${i},this)">${r.label}</button>`
-  ).join('');
-
-  updateRankingsInfoBar();
-  renderRankingsTable();
+// ══ NAVIGATION ═══════════════════════════════════════════════════════
+function setSport(s){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sport-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+s).classList.add('active');
+  document.getElementById('btn-'+s).classList.add('active');
 }
 
-function switchRankingTab(idx, btn) {
-  activeRankingIdx = idx;
-  document.querySelectorAll('#rankings-tabs-selector .rank-filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  rankFilter = 'ALL';
-  document.querySelectorAll('#rank-filter-bar .rank-filter-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('#rank-filter-bar .rank-filter-btn').classList.add('active');
-  updateRankingsInfoBar();
-  renderRankingsTable();
+const FB_TABS=['dash','ligas','rankings','lesoes','bye','adp','ktc','waiver','startsit','trade','draft','playoff','comparar','ia','hist'];
+const BB_TABS=['dash','ligas','stream','stats','startsit','waiver','trade','draft','ia','hist'];
+
+function setTab(sp,name){
+  const tabs=sp==='fb'?FB_TABS:BB_TABS;
+  tabs.forEach(t=>{document.getElementById(`${sp}-${t}`)?.classList.remove('active');});
+  document.getElementById(`${sp}-${name}`)?.classList.add('active');
+  document.querySelectorAll(`#tabs-${sp} .tab`).forEach((el,i)=>el.classList.toggle('active',tabs[i]===name));
 }
 
-function updateRankingsInfoBar() {
-  const r = state.rankings[activeRankingIdx];
-  if (!r) return;
-  const bar = document.getElementById('rankings-info-bar');
-  bar.innerHTML = `<strong>${r.label}</strong> · ${r.players.length} jogadores · Importado em ${r.imported}
-    <button class="btn-sm btn-danger" onclick="deleteRanking(${activeRankingIdx})" style="margin-left:auto">Remover</button>`;
-}
+// ══ RENDER ═══════════════════════════════════════════════════════════
+function renderAll(){renderFbLg();renderBbLg();populateSels();renderHist('fb');renderHist('bb');renderDashFb();renderDashBb();renderTradeHist();}
 
-function deleteRanking(idx) {
-  state.rankings.splice(idx, 1);
-  activeRankingIdx = 0;
-  saveState();
-  if (!state.rankings.length) { document.getElementById('rankings-loaded').style.display='none'; return; }
-  showRankingsLoaded();
-}
-
-function filterRankings(pos, btn) {
-  rankFilter = pos;
-  document.querySelectorAll('#rank-filter-bar .rank-filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderRankingsTable();
-}
-
-function renderRankingsTable() {
-  const r = state.rankings[activeRankingIdx];
-  if (!r) return;
-  const search = (document.getElementById('rankings-search')?.value||'').toLowerCase();
-  let players = r.players;
-
-  if (rankFilter === 'JAKE+') players = players.filter(p => p.vsEcr >= 5);
-  else if (rankFilter === 'JAKE-') players = players.filter(p => p.vsEcr <= -5);
-  else if (rankFilter !== 'ALL') players = players.filter(p => p.pos === rankFilter);
-
-  if (search) players = players.filter(p => p.name.toLowerCase().includes(search) || p.team.toLowerCase().includes(search));
-
-  const tbody = document.getElementById('rankings-tbody');
-  tbody.innerHTML = players.slice(0,100).map(p => {
-    const diff = p.vsEcr;
-    const diffClass = diff >= 5 ? 'ecr-pos' : diff <= -5 ? 'ecr-neg' : 'ecr-neu';
-    const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
-    return `<tr>
-      <td><span class="rank-num">${p.rank}</span></td>
-      <td style="font-weight:600">${p.name}</td>
-      <td style="opacity:.6">${p.team}</td>
-      <td><span class="pos-badge pos-${p.pos}">${p.pos}</span></td>
-      <td style="font-weight:700">${p.rank}</td>
-      <td style="opacity:.6">${p.ecr}</td>
-      <td><span class="ecr-diff ${diffClass}">${diffStr}</span></td>
-    </tr>`;
+function renderFbLg(){
+  const el=document.getElementById('fb-lg-list');
+  if(!S.fb.leagues.length){el.innerHTML='<div class="no-data">Nenhuma liga.</div>';return;}
+  el.innerHTML=S.fb.leagues.map(l=>{
+    const bc=l.type==='dynasty-idp'?'b-dynasty-idp':l.type==='dynasty'?'b-dynasty':'b-redraft';
+    return `<div class="lg-card"><div><div class="lg-name">${l.name}</div><div class="lg-meta">${l.platform.toUpperCase()} · ${l.teams||'?'} times</div></div><div style="text-align:right"><span class="badge ${bc}">${l.type.toUpperCase()}</span><div style="font-size:10px;opacity:.4;margin-top:2px">${(l.scoring||'').toUpperCase()}</div></div></div>`;
   }).join('');
 }
 
-// ── ATHLETIC CONTENT ──────────────────────────────────────────────────
-function saveAthleticContent() {
-  state.athletic = document.getElementById('athletic-content').value;
-  saveState();
-  document.getElementById('athletic-status').textContent = `✓ Salvo em ${new Date().toLocaleString('pt-BR')}`;
+function renderBbLg(){
+  const el=document.getElementById('bb-lg-list');
+  if(!S.bb.leagues.length){el.innerHTML='<div class="no-data">Nenhuma liga.</div>';return;}
+  el.innerHTML=S.bb.leagues.map(l=>{
+    const bc=l.type==='dynasty'?'b-dynasty':'b-redraft';
+    return `<div class="lg-card"><div><div class="lg-name">${l.name}</div><div class="lg-meta">${l.platform.toUpperCase()} · ${l.teams||'?'} times</div></div><div style="text-align:right"><span class="badge ${bc}">${l.type.toUpperCase()}</span><div style="font-size:10px;opacity:.4;margin-top:2px">${(l.scoring||'').toUpperCase()}</div></div></div>`;
+  }).join('');
 }
 
-function clearAthleticContent() {
-  state.athletic = '';
-  document.getElementById('athletic-content').value = '';
-  saveState();
-  document.getElementById('athletic-status').textContent = 'Conteúdo removido.';
+function addLgFb(){
+  const name=document.getElementById('add-fb-name').value.trim();if(!name)return;
+  S.fb.leagues.push({id:'m_'+Date.now(),name,platform:'manual',type:document.getElementById('add-fb-type').value,scoring:document.getElementById('add-fb-sc').value,teams:parseInt(document.getElementById('add-fb-teams').value)||12});
+  save();renderFbLg();populateSels();document.getElementById('add-fb-name').value='';
+}
+function addLgBb(){
+  const name=document.getElementById('add-bb-name').value.trim();if(!name)return;
+  S.bb.leagues.push({id:'mb_'+Date.now(),name,platform:'manual',type:document.getElementById('add-bb-type').value,scoring:document.getElementById('add-bb-sc').value,teams:parseInt(document.getElementById('add-bb-teams').value)||12});
+  save();renderBbLg();populateSels();document.getElementById('add-bb-name').value='';
 }
 
-function loadAthleticContent() {
-  const el = document.getElementById('athletic-content');
-  if (el && state.athletic) el.value = state.athletic;
+function populateSels(){
+  const fbO=S.fb.leagues.length?S.fb.leagues.map(l=>`<option value="${l.id}">${l.name} (${l.type})</option>`).join(''):'<option>— sem ligas —</option>';
+  const bbO=S.bb.leagues.length?S.bb.leagues.map(l=>`<option value="${l.id}">${l.name}</option>`).join(''):'<option>— sem ligas —</option>';
+  ['wv-lg','ss-lg','tr-lg','ia-fb-lg','cmp-a','cmp-b'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=fbO;});
+  ['bb-ss-lg','bb-wv-lg','bb-tr-lg','ia-bb-lg','stream-lg'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=bbO;});
+}
+function getLg(sp,id){return (sp==='fb'?S.fb.leagues:S.bb.leagues).find(l=>l.id===id)||null;}
+
+// ══ DASHBOARD ════════════════════════════════════════════════════════
+function renderDashFb(){
+  const el=document.getElementById('fb-dash-content');
+  if(!S.fb.leagues.length){el.innerHTML='<div class="no-data">Carregue suas ligas primeiro.</div>';return;}
+  const total=S.fb.leagues.length;
+  const dynasty=S.fb.leagues.filter(l=>l.type.includes('dynasty')).length;
+  const redraft=total-dynasty;
+  el.innerHTML=`
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-num">${total}</div><div class="dash-lbl">Total ligas</div></div>
+      <div class="dash-card"><div class="dash-num">${dynasty}</div><div class="dash-lbl">Dynasty</div></div>
+      <div class="dash-card"><div class="dash-num">${redraft}</div><div class="dash-lbl">Redraft</div></div>
+    </div>
+    <div class="lbl">Suas ligas</div>
+    ${S.fb.leagues.map(l=>`
+      <div class="dash-row">
+        <div><div style="font-size:12px;font-weight:700;color:var(--gold)">${l.name}</div><div style="font-size:10px;opacity:.4">${l.platform} · ${l.scoring||'?'}</div></div>
+        <span class="badge ${l.type.includes('dynasty')?'b-dynasty':'b-redraft'}">${l.type.toUpperCase()}</span>
+      </div>`).join('')}`;
 }
 
-// ── RANKINGS CONTEXT FOR AI ───────────────────────────────────────────
-function getRankingsContext(players) {
-  if (!state.rankings.length) return '';
-  const playerList = players ? players.split(',').map(p=>p.trim().toLowerCase()) : [];
-  let ctx = '\n\n--- RANKINGS JAKE CIELY (FantasyPros) ---\n';
-  state.rankings.forEach(r => {
-    ctx += `\n[${r.label}]\n`;
-    let relevant = r.players;
-    if (playerList.length) {
-      relevant = r.players.filter(p => playerList.some(n => p.name.toLowerCase().includes(n)));
-    } else {
-      relevant = r.players.slice(0, 30);
-    }
-    relevant.forEach(p => {
-      const diff = p.vsEcr > 0 ? `(Jake gosta +${p.vsEcr} vs consenso)` : p.vsEcr < 0 ? `(Jake evita ${p.vsEcr} vs consenso)` : '';
-      ctx += `#${p.rank} ${p.name} (${p.team}, ${p.pos}) ECR:#${p.ecr} ${diff}\n`;
-    });
+function renderDashBb(){
+  const el=document.getElementById('bb-dash-content');
+  if(!S.bb.leagues.length){el.innerHTML='<div class="no-data">Carregue suas ligas primeiro.</div>';return;}
+  el.innerHTML=`
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-num">${S.bb.leagues.length}</div><div class="dash-lbl">Ligas</div></div>
+      <div class="dash-card"><div class="dash-num">${S.bb.leagues.filter(l=>l.type==='dynasty').length}</div><div class="dash-lbl">Dynasty</div></div>
+    </div>
+    <div class="lbl">Suas ligas</div>
+    ${S.bb.leagues.map(l=>`
+      <div class="dash-row">
+        <div><div style="font-size:12px;font-weight:700;color:var(--teal)">${l.name}</div><div style="font-size:10px;opacity:.4">${l.platform} · ${l.scoring||'?'}</div></div>
+        <span class="badge ${l.type==='dynasty'?'b-dynasty':'b-redraft'}">${l.type.toUpperCase()}</span>
+      </div>`).join('')}`;
+}
+
+// ══ RANKINGS ════════════════════════════════════════════════════════
+function importRk(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  let done=0;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const p=parseRkCSV(ev.target.result,f.name);
+      if(p){const i=S.rankings.findIndex(x=>x.label===p.label);if(i>=0)S.rankings[i]=p;else S.rankings.push(p);}
+      if(++done===files.length){save();showRkLoaded();document.getElementById('rk-status').innerHTML='<p style="color:#4ade80;font-size:11px;margin-top:5px">✓ Importado com sucesso!</p>';}
+    };
+    r.readAsText(f,'utf-8');
   });
-  if (state.athletic) ctx += `\n--- THE ATHLETIC (semana atual) ---\n${state.athletic.substring(0,800)}\n`;
+}
+function parseRkCSV(text,fname){
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const hi=lines.findIndex(l=>l.toLowerCase().includes('rank,player'));
+  if(hi<0)return null;
+  const players=lines.slice(hi+1).map(line=>{
+    const c=line.split(',');if(c.length<4)return null;
+    return{rank:parseInt(c[0])||0,name:(c[1]||'').trim(),team:(c[2]||'').trim(),pos:(c[3]||'').trim(),ecr:parseInt(c[4])||parseInt(c[0])||0,vsEcr:parseInt(c[5])||0};
+  }).filter(Boolean);
+  if(!players.length)return null;
+  const vets=['Bijan Robinson','Jahmyr Gibbs','Justin Jefferson','CeeDee Lamb'];
+  const label=players.slice(0,5).some(p=>vets.some(v=>p.name.includes(v.split(' ')[0])))?'Overall (Redraft)':'Rookies / Dynasty';
+  return{label,players,imported:new Date().toLocaleDateString('pt-BR')};
+}
+function showRkLoaded(){
+  if(!S.rankings.length)return;
+  document.getElementById('rk-loaded').style.display='block';
+  document.getElementById('rk-tabs').innerHTML=S.rankings.map((r,i)=>`<button class="rf-btn ${i===rkIdx?'active':''}" onclick="switchRkTab(${i},this)">${r.label}</button>`).join('');
+  updRkInfo();renderRkTbl();
+}
+function switchRkTab(i,btn){rkIdx=i;rkFilter='ALL';document.querySelectorAll('#rk-tabs .rf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#rk-filters .rf-btn').forEach((b,j)=>b.classList.toggle('active',j===0));updRkInfo();renderRkTbl();}
+function updRkInfo(){const r=S.rankings[rkIdx];if(!r)return;document.getElementById('rk-info').innerHTML=`<span style="font-size:12px;font-weight:700;color:var(--gold)">${r.label}</span> <span style="opacity:.4;font-size:11px">· ${r.players.length} jogadores · ${r.imported}</span> <button class="btn-sm btn-danger" onclick="delRk(${rkIdx})" style="float:right">Remover</button>`;}
+function delRk(i){S.rankings.splice(i,1);rkIdx=0;save();if(!S.rankings.length)document.getElementById('rk-loaded').style.display='none';else showRkLoaded();}
+function setRkF(f,btn){rkFilter=f;document.querySelectorAll('#rk-filters .rf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderRkTbl();}
+function renderRkTbl(){
+  const r=S.rankings[rkIdx];if(!r)return;
+  const search=(document.getElementById('rk-search')?.value||'').toLowerCase();
+  let p=r.players;
+  if(rkFilter==='UP')p=p.filter(x=>x.vsEcr>=5);
+  else if(rkFilter==='DN')p=p.filter(x=>x.vsEcr<=-5);
+  else if(rkFilter!=='ALL')p=p.filter(x=>x.pos===rkFilter);
+  if(search)p=p.filter(x=>x.name.toLowerCase().includes(search)||x.team.toLowerCase().includes(search));
+  document.getElementById('rk-tbody').innerHTML=p.slice(0,120).map(x=>{
+    const dc=x.vsEcr>=5?'diff-up':x.vsEcr<=-5?'diff-dn':'diff-n';
+    const ds=x.vsEcr>0?`+${x.vsEcr}`:x.vsEcr===0?'0':`${x.vsEcr}`;
+    return `<tr><td><span class="rn">${x.rank}</span></td><td style="font-weight:600">${x.name}</td><td style="opacity:.4">${x.team}</td><td><span class="pos-${x.pos}">${x.pos}</span></td><td style="opacity:.4">${x.ecr}</td><td><span class="${dc}">${ds}</span></td></tr>`;
+  }).join('');
+}
+function getRkCtx(players){
+  if(!S.rankings.length)return'';
+  const names=(players||'').split(',').map(p=>p.trim().toLowerCase()).filter(Boolean);
+  let ctx='\n\n--- RANKINGS FANTASYPROS (ECR) ---\n';
+  S.rankings.forEach(r=>{
+    ctx+=`[${r.label}]\n`;
+    const list=names.length?r.players.filter(p=>names.some(n=>p.name.toLowerCase().includes(n))):r.players.slice(0,20);
+    list.forEach(p=>{const d=p.vsEcr>0?`(expert +${p.vsEcr} vs consenso)`:p.vsEcr<0?`(expert ${p.vsEcr} vs consenso)`:'';ctx+=`#${p.rank} ${p.name} (${p.team},${p.pos}) ECR:#${p.ecr} ${d}\n`;});
+  });
+  if(S.athletic)ctx+=`\n--- JAKE CIELY / THE ATHLETIC ---\n${S.athletic.substring(0,500)}\n`;
   return ctx;
 }
+function saveAthletic(){S.athletic=document.getElementById('athletic-txt').value;save();document.getElementById('athletic-st').textContent='✓ Salvo em '+new Date().toLocaleString('pt-BR');}
+function clearAthletic(){S.athletic='';document.getElementById('athletic-txt').value='';save();document.getElementById('athletic-st').textContent='Removido.';}
 
-// ── SLEEPER ───────────────────────────────────────────────────────────
-async function fetchSleeperLeagues() {
-  const el = document.getElementById('fb-fetch-status');
-  try {
-    const userRes = await fetch(`https://api.sleeper.app/v1/user/${SLEEPER_USER}`);
-    const user = await userRes.json();
-    const uid = user.user_id;
-    let found = [];
-    for (const s of ['2025','2024']) {
-      const r = await fetch(`https://api.sleeper.app/v1/user/${uid}/leagues/nfl/${s}`);
-      const ls = await r.json();
-      if (ls && ls.length) { found = ls; break; }
-    }
-    if (found.length) {
-      found.forEach(l => {
-        const lg = {
-          id: l.league_id, name: l.name, platform:'sleeper',
-          type: l.settings?.type===2?'dynasty':'redraft',
-          scoring: l.scoring_settings?.rec===1?'ppr':l.scoring_settings?.rec===0.5?'half':'standard',
-          teams: l.total_rosters, season: l.season
-        };
-        if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg);
-      });
-      saveState(); renderFBLeagues(); populateLeagueSelects();
-      el.textContent = `${found.length} liga(s) carregada(s) do Sleeper ✓`;
-      el.parentElement.style.borderColor='#22c55e';
-    } else el.textContent = 'Nenhuma liga encontrada no Sleeper.';
-  } catch(e) { el.textContent = 'Sleeper: erro de conexão. Adicione manualmente.'; }
-  el.parentElement.querySelector('.spinner').style.display='none';
+// ══ INJURIES ════════════════════════════════════════════════════════
+async function fetchInjuries(){
+  const el=document.getElementById('injury-list');
+  el.innerHTML='<div class="sbar gold"><span class="spinner"></span><span>Buscando status dos jogadores…</span></div>';
+  try{
+    const inj=await fetch('https://api.sleeper.app/v1/players/nfl').then(r=>r.json());
+    const injured=Object.values(inj).filter(p=>p.injury_status&&['Out','Questionable','IR','PUP'].includes(p.injury_status)&&p.fantasy_positions?.length).slice(0,50);
+    if(!injured.length){el.innerHTML='<div class="no-data">Nenhuma lesão relevante no momento.</div>';return;}
+    el.innerHTML=`<div class="lbl">Jogadores com status de lesão</div>`+injured.map(p=>{
+      const bc=p.injury_status==='Out'||p.injury_status==='IR'?'inj-out':p.injury_status==='Questionable'?'inj-q':'inj-ir';
+      return`<div class="player-row"><div><strong>${p.full_name}</strong><div style="font-size:10px;opacity:.4">${p.team||'FA'} · ${p.fantasy_positions?.[0]||'?'}</div></div><span class="inj-badge ${bc}">${p.injury_status}</span></div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<div class="no-data">Erro ao buscar lesões.</div>';}
 }
 
-async function fetchFleaflickerLeagues() {
-  const elFb = document.getElementById('ffl-fetch-status');
-  const elBb = document.getElementById('ffl-bb-fetch-status');
-  if (elFb) { elFb.textContent='Fleaflicker NFL: 3 ligas dynasty pré-cadastradas ✓'; elFb.parentElement.style.borderColor='#22c55e'; elFb.parentElement.querySelector('.spinner').style.display='none'; }
-  if (elBb) { elBb.textContent='Fleaflicker NBA: liga dynasty pré-cadastrada ✓'; elBb.parentElement.style.borderColor='#22c55e'; elBb.parentElement.querySelector('.spinner').style.display='none'; }
-};
-      if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg);
-    });
-    (nbaData.leagues||[]).forEach(l => {
-      const lg = { id:'ffl_nba_'+l.id, ffl_id:l.id, ffl_team_id:l.owned_team?.id,
-        name:l.name, platform:'fleaflicker', sport:'nba', type:'dynasty', scoring:'h2h-points', teams:null };
-      if (!state.bb.leagues.find(x=>x.id===lg.id)) state.bb.leagues.push(lg);
-    });
-    saveState(); renderFBLeagues(); renderBBLeagues(); populateLeagueSelects();
-    if (elFb) { elFb.textContent=`Fleaflicker NFL: ${(nflData.leagues||[]).length} liga(s) ✓`; elFb.parentElement.style.borderColor='#22c55e'; }
-    if (elBb) { elBb.textContent=`Fleaflicker NBA: ${(nbaData.leagues||[]).length} liga(s) ✓`; elBb.parentElement.style.borderColor='#22c55e'; }
-  } catch(e) {
-    if (elFb) elFb.textContent='Fleaflicker: CORS no sandbox. Funciona no Vercel.';
-    if (elBb) elBb.textContent='Fleaflicker NBA: CORS no sandbox. Funciona no Vercel.';
-  }
-  [elFb,elBb].forEach(el=>{ if(el) el.parentElement.querySelector('.spinner').style.display='none'; });
+// ══ BYE WEEKS ═══════════════════════════════════════════════════════
+function renderByeCalendar(){
+  const input=document.getElementById('bye-players').value;
+  const teams=input.split(',').map(t=>t.trim().toUpperCase()).filter(Boolean);
+  if(!teams.length){alert('Insira os times dos seus jogadores.');return;}
+  const el=document.getElementById('bye-calendar');
+  const weeks=[5,6,7,8,9,10,11,12,13,14];
+  const byeCounts={};
+  weeks.forEach(w=>byeCounts[w]=teams.filter(t=>NFL_BYES[t]===w).length);
+  const max=Math.max(...Object.values(byeCounts));
+  el.innerHTML=`
+    <div class="card">
+      <h3>📅 Bye weeks — suas semanas críticas</h3>
+      <div class="bye-grid">
+        ${weeks.map(w=>`<div class="bye-header">Sem ${w}</div>`).join('')}
+        ${weeks.map(w=>{
+          const cnt=byeCounts[w];
+          const cls=cnt>=3?'bye-crit':cnt>=2?'bye-warn':'bye-ok';
+          const tms=teams.filter(t=>NFL_BYES[t]===w);
+          return`<div class="bye-week ${cls}" title="${tms.join(', ')}">${cnt>0?cnt+' 🚨':'-'}</div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:12px">
+      ${weeks.map(w=>{
+        const tms=teams.filter(t=>NFL_BYES[t]===w);
+        if(!tms.length)return'';
+        const cls=tms.length>=3?'inj-out':tms.length>=2?'inj-q':'diff-n';
+        return`<div class="player-row"><span style="font-size:11px;opacity:.5">Sem ${w}</span><div>${tms.map(t=>`<span class="badge b-redraft" style="margin-left:4px">${t}</span>`).join('')}</div></div>`;
+      }).join('')}
+      </div>
+    </div>`;
 }
 
-async function fetchESPNLeague() {
-  const el = document.getElementById('espn-fetch-status');
-  // ESPN requer autenticação para esta liga — usando dados pré-cadastrados
-  const fallback = { id:`espn_bb_${ESPN_BB_LEAGUE_ID}`, espn_id:ESPN_BB_LEAGUE_ID,
-    name:'Liga NBA ESPN', platform:'espn', sport:'nba', type:'redraft', scoring:'h2h-points', teams:12 };
-  if (!state.bb.leagues.find(x=>x.id===fallback.id)) {
-    state.bb.leagues.push(fallback); saveState(); renderBBLeagues(); populateLeagueSelects();
-  }
-  if (el) {
-    el.textContent = 'ESPN: Liga NBA pré-cadastrada ✓';
-    el.parentElement.style.borderColor = '#22c55e';
-    el.parentElement.querySelector('.spinner').style.display = 'none';
-  }
+// ══ ADP ═════════════════════════════════════════════════════════════
+async function fetchADP(){
+  const el=document.getElementById('adp-results');
+  const format=document.getElementById('adp-format').value;
+  const teams=document.getElementById('adp-teams').value;
+  el.innerHTML='<div class="sbar gold"><span class="spinner"></span><span>Buscando ADP…</span></div>';
+  try{
+    const url=`https://fantasyfootballcalculator.com/api/v1/adp/${format}?teams=${teams}&year=2025`;
+    const data=await fetch(url).then(r=>r.json());
+    adpData=data.players||[];
+    filterADP();
+  }catch(e){el.innerHTML='<div class="no-data">Erro ao buscar ADP. Tente novamente.</div>';}
+}
+function filterADP(){
+  const el=document.getElementById('adp-results');
+  const search=document.getElementById('adp-search').value.toLowerCase();
+  const list=search?adpData.filter(p=>(p.name||'').toLowerCase().includes(search)):adpData.slice(0,50);
+  if(!list.length){el.innerHTML='<div class="no-data">Nenhum resultado.</div>';return;}
+  el.innerHTML=`<table class="rk-table"><thead><tr><th>ADP</th><th>Jogador</th><th>Time</th><th>Pos</th><th>Pick</th></tr></thead><tbody>`+
+    list.map(p=>`<tr><td><span class="rn">${Math.round(p.adp||0)}</span></td><td style="font-weight:600">${p.name}</td><td style="opacity:.4">${p.team||''}</td><td><span class="pos-${p.position}">${p.position}</span></td><td style="opacity:.4">${p.pick_number||''}</td></tr>`).join('')+
+    '</tbody></table>';
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────
-function renderFBLeagues() {
-  const el = document.getElementById('fb-league-list');
-  if (!state.fb.leagues.length) { el.innerHTML='<div class="no-data">Nenhuma liga.</div>'; return; }
-  el.innerHTML = state.fb.leagues.map((l,i) => {
-    const typeColor = l.type==='redraft'?'#10b981':l.type==='dynasty-idp'?'#f59e0b':'#8b5cf6';
-    return `<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:${l.platform==='sleeper'?'#F5C518':'#aaa'}">${l.name}</div>
-          <div style="font-size:12px;opacity:.5;margin-top:3px">${l.platform.toUpperCase()} · ${l.teams||'?'} times</div>
-        </div>
-        <div style="text-align:right">
-          <span style="background:${typeColor};color:#000;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">${l.type.toUpperCase()}</span>
-          <div style="font-size:12px;opacity:.6;margin-top:4px">${(l.scoring||'').toUpperCase()}</div>
-        </div>
+// ══ KTC ══════════════════════════════════════════════════════════════
+async function fetchKTC(){
+  const el=document.getElementById('ktc-results');
+  const format=document.getElementById('ktc-format').value;
+  el.innerHTML='<div class="sbar gold"><span class="spinner"></span><span>Buscando valores KTC…</span></div>';
+  try{
+    const isSF=format==='sf';
+    const url=`https://keeptradecut.com/fantasy-football/rankings?format=${isSF?2:1}`;
+    // KTC doesn't have a public JSON API — use fallback with IA analysis
+    el.innerHTML=`
+      <div class="card">
+        <h3>💰 KTC Trade Values</h3>
+        <p style="font-size:11px;opacity:.5;margin-bottom:10px">O KTC não tem API pública. Use a análise de IA abaixo para avaliar valores dynasty, ou acesse <a href="https://keeptradecut.com/fantasy-football/rankings" target="_blank" style="color:var(--gold)">keeptradecut.com</a> para valores exatos.</p>
+        <div class="lbl">Consultar valor de jogador via IA</div>
+        <input type="text" id="ktc-player-q" placeholder="Ex: Puka Nacua, Ja'Marr Chase, pick 1.01"/>
+        <select id="ktc-fmt-q"><option value="1QB">1QB</option><option value="Superflex">Superflex</option></select>
+        <button class="btn btn-primary" onclick="doKTCQuery()">Consultar valor KTC com IA ↗</button>
+        <div class="ai-box" id="ktc-ai" style="display:none"></div>
+      </div>`;
+  }catch(e){el.innerHTML='<div class="no-data">Erro ao carregar.</div>';}
+}
+function filterKTC(){
+  const search=document.getElementById('ktc-search').value.toLowerCase();
+  if(!ktcData.length)return;
+  const list=ktcData.filter(p=>(p.name||'').toLowerCase().includes(search)).slice(0,40);
+  document.getElementById('ktc-results').innerHTML=list.map(p=>`<div class="player-row"><div><strong>${p.name}</strong><div style="font-size:10px;opacity:.4">${p.position} · ${p.team}</div></div><span class="ktc-val">${p.value?.toLocaleString()}</span></div>`).join('');
+}
+async function doKTCQuery(){
+  const player=document.getElementById('ktc-player-q').value;
+  const fmt=document.getElementById('ktc-fmt-q').value;
+  if(!player.trim()){alert('Insira um jogador.');return;}
+  const prompt=`CONSULTA KTC (KeepTradeCut) — Formato: ${fmt}\n\nQual o valor dynasty aproximado de: ${player}?\n\nForneça: valor estimado no KTC, tier do jogador (elite/high/mid/low), tendência de valor (subindo/descendo/estável), e comparações com jogadores similares. Base sua resposta no conhecimento de valores dynasty 2025.`;
+  await callAI(prompt,'ktc-ai');
+}
+
+// ══ PLAYOFF SIMULATOR ════════════════════════════════════════════════
+async function loadPlayoffSim(){
+  const el=document.getElementById('playoff-content');
+  el.innerHTML='<div class="sbar gold"><span class="spinner"></span><span>Buscando dados do Sleeper…</span></div>';
+  const results=[];
+  for(const lg of S.sleeperLeagues){
+    try{
+      const rosters=await fetch(`https://api.sleeper.app/v1/league/${lg.league_id||lg.id}/rosters`).then(r=>r.json());
+      const users=await fetch(`https://api.sleeper.app/v1/league/${lg.league_id||lg.id}/users`).then(r=>r.json());
+      const myUser=users.find(u=>u.display_name===SLEEPER_USER);
+      if(!myUser)continue;
+      const myRoster=rosters.find(r=>r.owner_id===myUser.user_id);
+      if(!myRoster)continue;
+      const w=myRoster.settings?.wins||0;
+      const l=myRoster.settings?.losses||0;
+      const pf=myRoster.settings?.fpts||0;
+      const total=rosters.length;
+      const playoffSpots=lg.settings?.playoff_week_start?Math.round(total*0.4):Math.round(total/3);
+      const rank=rosters.filter(r=>(r.settings?.wins||0)>w||(r.settings?.wins||0)===w&&(r.settings?.fpts||0)>pf).length+1;
+      const pct=Math.max(0,Math.min(100,Math.round((1-(rank-1)/total)*100)));
+      results.push({name:lg.name,w,l,pf:Math.round(pf),rank,total,pct,spots:playoffSpots});
+    }catch(e){}
+  }
+  S.manualPlayoffs?.forEach(m=>results.push(m));
+  if(!results.length){el.innerHTML='<div class="no-data">Não foi possível carregar dados. Adicione manualmente abaixo.</div>';return;}
+  el.innerHTML=`<div class="lbl">Probabilidade de playoff por liga</div>`+results.map(r=>{
+    const cls=r.pct>=60?'sim-good':r.pct>=35?'sim-mid':'sim-bad';
+    return`<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong style="font-size:12px;color:var(--gold)">${r.name}</strong>
+        <span style="font-size:16px;font-weight:900;color:var(--gold)">${r.pct}%</span>
+      </div>
+      <div class="sim-bar ${cls}" style="width:${r.pct}%"></div>
+      <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;opacity:.5">
+        <span>${r.w}V-${r.l}D</span><span>Rank ${r.rank}/${r.total}</span><span>${r.pf} pts</span>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderBBLeagues() {
-  const el = document.getElementById('bb-league-list');
-  if (!state.bb.leagues.length) { el.innerHTML='<div class="no-data">Nenhuma liga.</div>'; return; }
-  el.innerHTML = state.bb.leagues.map((l,i) => `
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:#00B4B4">${l.name}</div>
-          <div style="font-size:12px;opacity:.5;margin-top:3px">${l.platform.toUpperCase()} · ${l.teams||'?'} times</div>
-        </div>
-        <div style="text-align:right">
-          <span style="background:#5B2D8E;color:#00B4B4;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">${l.type.toUpperCase()}</span>
-          <div style="font-size:12px;opacity:.6;margin-top:4px">${(l.scoring||'').toUpperCase()}</div>
-        </div>
-      </div>
-    </div>`).join('');
+function addManualPlayoff(){
+  const name=document.getElementById('pf-name').value.trim();
+  if(!name)return;
+  const w=parseInt(document.getElementById('pf-w').value)||0;
+  const l=parseInt(document.getElementById('pf-l').value)||0;
+  const games=parseInt(document.getElementById('pf-games').value)||14;
+  const pf=parseInt(document.getElementById('pf-pf').value)||0;
+  const spots=parseInt(document.getElementById('pf-playoff-spots').value)||4;
+  const pct=Math.round((w/(w+l||1))*100);
+  if(!S.manualPlayoffs)S.manualPlayoffs=[];
+  S.manualPlayoffs.push({name,w,l,pf,total:games,rank:Math.round(games*(1-pct/100))+1,pct,spots});
+  save();
+  loadPlayoffSim();
 }
 
-function addManualLeague() {
-  const name = document.getElementById('fl-league-name').value.trim();
-  if (!name) return;
-  state.fb.leagues.push({ id:'manual_'+Date.now(), name, platform:'fleaflicker',
-    type:document.getElementById('fl-type').value,
-    scoring:document.getElementById('fl-format').value,
-    teams:parseInt(document.getElementById('fl-teams').value)||12 });
-  saveState(); renderFBLeagues(); populateLeagueSelects();
-  document.getElementById('fl-league-name').value='';
+// ══ ROSTER COMPARE ═══════════════════════════════════════════════════
+async function doCompare(){
+  const lgA=getLg('fb',document.getElementById('cmp-a').value);
+  const lgB=getLg('fb',document.getElementById('cmp-b').value);
+  const rA=document.getElementById('cmp-roster-a').value;
+  const rB=document.getElementById('cmp-roster-b').value;
+  if(!rA.trim()||!rB.trim()){alert('Insira os rosters das duas ligas.');return;}
+  const prompt=`COMPARADOR DE ROSTERS — Fantasy Football\n\nLiga A: ${lgA?.name||'?'} (${lgA?.type||'?'}, ${lgA?.scoring||'?'})\nRoster A:\n${rA}\n\nLiga B: ${lgB?.name||'?'} (${lgB?.type||'?'}, ${lgB?.scoring||'?'})\nRoster B:\n${rB}\n\nAnalise os dois rosters e responda:\n1) Qual liga você está em posição mais forte?\n2) Quais posições estão mais vulneráveis em cada liga?\n3) Que tipo de waiver/trade deveria buscar em cada uma?\n4) Qual liga tem mais potencial de playoff?`;
+  await callAI(prompt,'cmp-resp');
 }
 
-function addManualBBLeague() {
-  const name = document.getElementById('bb-fl-name').value.trim();
-  if (!name) return;
-  state.bb.leagues.push({ id:'manual_bb_'+Date.now(), name, platform:'fleaflicker',
-    type:document.getElementById('bb-fl-type').value,
-    scoring:document.getElementById('bb-fl-scoring').value,
-    teams:parseInt(document.getElementById('bb-fl-teams').value)||12 });
-  saveState(); renderBBLeagues(); populateLeagueSelects();
-  document.getElementById('bb-fl-name').value='';
+// ══ STREAMING BB ═════════════════════════════════════════════════════
+async function fetchStreaming(){
+  const el=document.getElementById('stream-results');
+  const need=document.getElementById('stream-need').value;
+  const sc=document.getElementById('stream-sc').value;
+  el.innerHTML='<div class="sbar teal"><span class="spinner"></span><span>Buscando opções de streaming…</span></div>';
+  const teams=Object.entries(NBA_GAMES_THIS_WEEK).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=`<div class="lbl">Times com mais jogos esta semana</div>`+
+    teams.slice(0,15).map(([team,games])=>{
+      const cls=games>=4?'games-4':games>=3?'games-3':'games-2';
+      return`<div class="stream-row"><div><strong>${team}</strong><div style="font-size:10px;opacity:.4">NBA 2025-26</div></div><span class="games-badge ${cls}">${games} jogos</span></div>`;
+    }).join('');
+  const prompt=`STREAMING ASSISTANT — Fantasy Basketball | ${sc}\n\nTimes com mais jogos esta semana:\n${teams.slice(0,10).map(([t,g])=>`${t}: ${g} jogos`).join(', ')}\n\nNecessidades: ${need||'geral'}\n\nSugira 5 jogadores para streaming esta semana, explicando quantos jogos cada um tem, quais categorias contribuem, e se são opções seguras ou especulativas.`;
+  const ai=document.getElementById('stream-ai');
+  ai.style.display='block';
+  await callAI(prompt,'stream-ai');
 }
 
-function populateLeagueSelects() {
-  ['ss-league','wav-league','tr-league','an-league-fb'].forEach(id => {
-    const el = document.getElementById(id); if (!el) return;
-    el.innerHTML = state.fb.leagues.length
-      ? state.fb.leagues.map(l=>`<option value="${l.id}">${l.name} (${l.type}, ${l.scoring||'?'})</option>`).join('')
-      : '<option>— Nenhuma liga —</option>';
-  });
-  ['bb-ss-league','bb-wav-league','bb-tr-league','an-league-bb'].forEach(id => {
-    const el = document.getElementById(id); if (!el) return;
-    el.innerHTML = state.bb.leagues.length
-      ? state.bb.leagues.map(l=>`<option value="${l.id}">${l.name} (${l.type})</option>`).join('')
-      : '<option>— Nenhuma liga —</option>';
-  });
-}
-
-function getLeagueById(sport, id) {
-  return (sport==='fb'?state.fb.leagues:state.bb.leagues).find(l=>l.id===id)||null;
-}
-
-// ── NAVIGATION ────────────────────────────────────────────────────────
-function switchSport(sport) {
-  state.sport = sport;
-  document.querySelectorAll('.sport-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`.sport-btn.${sport==='football'?'football':'basketball'}`).classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById(`${sport}-panel`).classList.add('active');
-}
-
-function fbTab(name) {
-  document.querySelectorAll('.fb-tab-content').forEach(el=>el.style.display='none');
-  document.getElementById(`fb-${name}`).style.display='block';
-  const tabs=['leagues','rankings','start-sit','waivers','trade','draft','analyze','history'];
-  document.querySelectorAll('#fb-tabs .tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
-}
-
-function bbTab(name) {
-  document.querySelectorAll('.bb-tab-content').forEach(el=>el.style.display='none');
-  document.getElementById(`bb-${name}`).style.display='block';
-  const tabs=['leagues','start-sit','waivers','trade','draft','analyze','history'];
-  document.querySelectorAll('#bb-tabs .tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
-}
-
-// ── AI ENGINE ─────────────────────────────────────────────────────────
-async function callAI(prompt, responseElId) {
-  const el = document.getElementById(responseElId);
-  el.style.display='block'; el.classList.add('loading');
-  el.innerHTML='<span class="spinner"></span> Analisando como expert…';
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:1000,
-        system:`Você é um analista expert em fantasy football e fantasy basketball americano. Conhece PPR, Half-PPR, Standard, Superflex, TE Premium, IDP, dynasty, redraft, trade value charts, métricas avançadas (target share, air yards, snap count, usage rate), streaming de basketball, punting de categorias, e gestão de múltiplas ligas.
-
-Quando rankings do Jake Ciely (FantasyPros) forem fornecidos: USE-OS como base da análise. Mencione o rank do Jake, compare com o ECR, e destaque quando Jake diverge significativamente do consenso (vs. ECR >= +5 ou <= -5). Quando conteúdo do The Athletic for fornecido: incorpore as análises e notícias nas suas recomendações.
-
-Responda SEMPRE em português do Brasil. Seja direto e confiante. Estruture: 1) Recomendação clara 2) Justificativa com dados/rankings 3) Alertas/riscos 4) Alternativas. Máximo 400 palavras. Sem markdown com asteriscos.`,
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    const data = await res.json();
-    const text = data.content?.find(b=>b.type==='text')?.text||'Sem resposta.';
-    el.classList.remove('loading'); el.innerHTML=text; return text;
-  } catch(e) { el.classList.remove('loading'); el.innerHTML='Erro ao conectar com a IA.'; return null; }
-}
-
-function saveToHistory(sport, type, question, answer) {
-  if (!answer) return;
-  state.history[sport].unshift({ type, question:question.substring(0,120), answer, time:new Date().toLocaleString('pt-BR') });
-  if (state.history[sport].length>20) state.history[sport].pop();
-  saveState(); renderHistory(sport);
-}
-
-function renderHistory(sport) {
-  const el = document.getElementById(`${sport}-history-list`); if (!el) return;
-  const list = state.history[sport];
-  if (!list.length) { el.innerHTML='<div class="no-data">Nenhuma análise ainda.</div>'; return; }
-  el.innerHTML = list.map((h,i)=>`
-    <div class="history-item">
-      <div class="h-type">${h.type}</div>
-      <div class="h-q">${h.question}${h.question.length>=120?'…':''}</div>
-      <div class="h-time">${h.time}</div>
-    </div>`).join('');
-}
-
-// ── ANALYSIS ──────────────────────────────────────────────────────────
-async function analyzeStartSit() {
-  const league = getLeagueById('fb', document.getElementById('ss-league').value);
-  const players = document.getElementById('ss-players').value;
-  const matchup = document.getElementById('ss-matchup').value;
-  const scoring = document.getElementById('ss-scoring').value;
-  if (!players.trim()) { alert('Insira os jogadores.'); return; }
-  const rankCtx = getRankingsContext(players);
-  const prompt = `START/SIT — ${league?.name||'?'} | ${scoring.toUpperCase()} | ${league?.type||'redraft'}
-Jogadores em dúvida: ${players}
-Matchup: ${matchup||'não informado'}${rankCtx}`;
-  const answer = await callAI(prompt,'ss-response');
-  saveToHistory('fb','Start/Sit',prompt,answer);
-}
-
-async function analyzeWaiver() {
-  const league = getLeagueById('fb', document.getElementById('wav-league').value);
-  const add = document.getElementById('wav-add').value;
-  const drop = document.getElementById('wav-drop').value;
-  const ctx = document.getElementById('wav-context').value;
-  const scoring = document.getElementById('wav-scoring').value;
-  if (!add.trim()) { alert('Insira o jogador.'); return; }
-  const rankCtx = getRankingsContext(add + (drop?','+drop:''));
-  const prompt = `WAIVER — ${league?.name||'?'} | ${scoring.toUpperCase()} | ${league?.type||'redraft'}
-Adicionar: ${add} | Dropar: ${drop||'não definido'}
-Contexto: ${ctx||'—'}${rankCtx}`;
-  const answer = await callAI(prompt,'wav-response');
-  saveToHistory('fb','Waiver',prompt,answer);
-}
-
-async function analyzeTrade(sport) {
-  if (sport==='fb') {
-    const league = getLeagueById('fb', document.getElementById('tr-league').value);
-    const receive = document.getElementById('tr-receive').value;
-    const give = document.getElementById('tr-give').value;
-    const ctx = document.getElementById('tr-context').value;
-    const scoring = document.getElementById('tr-scoring').value;
-    const type = document.getElementById('tr-type').value;
-    if (!receive||!give) { alert('Preencha os dois lados.'); return; }
-    const rankCtx = getRankingsContext(receive+','+give);
-    const prompt = `TRADE — ${league?.name||'?'} | ${scoring.toUpperCase()} | ${type}
-RECEBO: ${receive}
-DOU: ${give}
-Contexto: ${ctx||'—'}${rankCtx}`;
-    const answer = await callAI(prompt,'tr-response');
-    saveToHistory('fb','Trade',prompt,answer);
-  } else {
-    const league = getLeagueById('bb', document.getElementById('bb-tr-league').value);
-    const receive = document.getElementById('bb-tr-receive').value;
-    const give = document.getElementById('bb-tr-give').value;
-    const ctx = document.getElementById('bb-tr-context').value;
-    const scoring = document.getElementById('bb-tr-scoring').value;
-    const type = document.getElementById('bb-tr-type').value;
-    if (!receive||!give) { alert('Preencha os dois lados.'); return; }
-    const prompt = `TRADE BASKETBALL — ${league?.name||'?'} | ${scoring} | ${type}
-RECEBO: ${receive} | DOU: ${give}
-Contexto: ${ctx||'—'}`;
-    const answer = await callAI(prompt,'bb-tr-response');
-    saveToHistory('bb','Trade',prompt,answer);
+// ══ NBA STATS ════════════════════════════════════════════════════════
+async function fetchNBAStats(){
+  const el=document.getElementById('nba-stats-results');
+  const search=document.getElementById('nba-search').value.trim();
+  const season=document.getElementById('nba-season').value;
+  if(!search){alert('Insira um jogador.');return;}
+  el.innerHTML='<div class="sbar teal"><span class="spinner"></span><span>Buscando stats NBA…</span></div>';
+  try{
+    const url=`https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=${season}&IsOnlyCurrentSeason=1`;
+    const data=await fetch(url,{headers:{'x-nba-stats-origin':'stats','x-nba-stats-token':'true','Referer':'https://www.nba.com/'}}).then(r=>r.json());
+    const players=data.resultSets[0].rowSet;
+    const found=players.filter(p=>p[2]?.toLowerCase().includes(search.toLowerCase()));
+    if(!found.length){
+      el.innerHTML='<div class="no-data">Jogador não encontrado. Tente com o nome completo.</div>';
+      return;
+    }
+    el.innerHTML=`<div class="card"><h3>📊 ${found[0][2]}</h3><p style="font-size:11px;opacity:.5">ID: ${found[0][0]} · Use a análise de IA para estatísticas detalhadas desta temporada.</p><button class="btn btn-primary" style="margin-top:8px" onclick="getNBAPlayerAI('${found[0][2]}')">Analisar com IA ↗</button><div class="ai-box" id="nba-ai"></div></div>`;
+  }catch(e){
+    el.innerHTML=`<div class="card"><p style="font-size:12px;opacity:.6">A NBA Stats API restringe acesso direto do browser. Use a análise de IA para estatísticas.</p><input type="text" id="nba-ai-player" value="${search}" style="margin-top:8px"/><button class="btn btn-primary" style="margin-top:4px" onclick="getNBAPlayerAI(document.getElementById('nba-ai-player').value)">Analisar com IA ↗</button><div class="ai-box" id="nba-ai"></div></div>`;
   }
 }
+async function getNBAPlayerAI(player){
+  const prompt=`Forneça estatísticas detalhadas de fantasy basketball para ${player} na temporada 2024-25:\n- Médias (pts, reb, ast, stl, blk, 3pm, fg%, ft%)\n- Tendências recentes (últimas 2 semanas)\n- Valor para H2H Points vs H2H Categories\n- Lesões ou preocupações\n- Recomendação para streamers`;
+  const ai=document.getElementById('nba-ai');
+  if(ai)ai.style.display='block';
+  await callAI(prompt,'nba-ai');
+}
 
-async function analyzeDraft(sport) {
-  if (sport==='fb') {
+// ══ TRADE HISTORY ═════════════════════════════════════════════════════
+function addTradeHist(){
+  const rec=document.getElementById('th-rec').value.trim();
+  const gave=document.getElementById('th-gave').value.trim();
+  const lg=document.getElementById('th-lg').value.trim();
+  const date=document.getElementById('th-date').value.trim();
+  if(!rec||!gave)return;
+  if(!S.tradeHistory)S.tradeHistory=[];
+  S.tradeHistory.unshift({rec,gave,lg,date,added:new Date().toLocaleDateString('pt-BR')});
+  save();renderTradeHist();
+  ['th-rec','th-gave','th-lg','th-date'].forEach(id=>document.getElementById(id).value='');
+}
+function renderTradeHist(){
+  const el=document.getElementById('trade-hist-list');if(!el)return;
+  if(!S.tradeHistory?.length){el.innerHTML='<div class="no-data" style="padding:10px">Nenhum trade registrado.</div>';return;}
+  el.innerHTML=S.tradeHistory.map((t,i)=>`
+    <div class="player-row">
+      <div>
+        <div style="font-size:11px"><span style="color:#4ade80">↓ ${t.rec}</span></div>
+        <div style="font-size:11px"><span style="color:#f87171">↑ ${t.gave}</span></div>
+        <div style="font-size:10px;opacity:.4">${t.lg||'?'} · ${t.date||t.added}</div>
+      </div>
+      <button class="btn-sm btn-danger" onclick="delTrade(${i})">✕</button>
+    </div>`).join('');
+}
+function delTrade(i){S.tradeHistory.splice(i,1);save();renderTradeHist();}
+
+// ══ HISTORY ══════════════════════════════════════════════════════════
+function renderHist(sp){
+  const el=document.getElementById(`${sp}-hist-list`);if(!el)return;
+  const list=S.history[sp];
+  if(!list?.length){el.innerHTML='<div class="no-data">Nenhuma análise ainda.</div>';return;}
+  el.innerHTML=list.map(h=>`<div class="hist-item"><div class="hist-type">${h.type}</div><div class="hist-q">${h.q}</div><div class="hist-t">${h.time}</div></div>`).join('');
+}
+function addHist(sp,type,q,ans){
+  if(!ans)return;
+  if(!S.history[sp])S.history[sp]=[];
+  S.history[sp].unshift({type,q:q.substring(0,100),ans,time:new Date().toLocaleString('pt-BR')});
+  if(S.history[sp].length>25)S.history[sp].pop();
+  save();renderHist(sp);
+}
+
+// ══ AI ENGINE ════════════════════════════════════════════════════════
+const AI_SYS=`Você é um analista expert em fantasy football e fantasy basketball americano. Domina PPR, Half-PPR, Standard, Superflex, TE Premium, IDP, dynasty vs redraft, trade value charts (KTC), métricas avançadas (target share, snap count, usage rate, air yards, aDOT), streaming de basketball, e gestão de múltiplas ligas simultâneas.
+
+Quando rankings do FantasyPros forem fornecidos: use como base, mencione ECR e divergências do expert.
+Quando análise do Jake Ciely (The Athletic) for fornecida: incorpore nas recomendações.
+
+Responda SEMPRE em português do Brasil. Seja direto e confiante. Estruture: 1) Recomendação clara 2) Justificativa com dados 3) Alertas/riscos 4) Alternativas. Máximo 450 palavras. Sem markdown com asteriscos — use texto limpo com quebras de linha.`;
+
+async function callAI(prompt, respId){
+  const el=document.getElementById(respId);if(!el)return null;
+  el.style.display='block';el.classList.add('ai-loading');
+  el.innerHTML='<span class="spinner" style="display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:5px"></span> Analisando…';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYS,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await res.json();
+    const txt=d.content?.find(b=>b.type==='text')?.text||'Sem resposta.';
+    el.classList.remove('ai-loading');el.innerHTML=txt;return txt;
+  }catch(e){el.classList.remove('ai-loading');el.innerHTML='Erro ao conectar com a IA.';return null;}
+}
+
+// ══ ANALYSIS FUNCTIONS ═══════════════════════════════════════════════
+async function doStartSit(){
+  const lg=getLg('fb',document.getElementById('ss-lg').value);
+  const players=document.getElementById('ss-players').value;
+  const ctx=document.getElementById('ss-ctx').value;
+  const sc=document.getElementById('ss-sc').value;
+  if(!players.trim()){alert('Insira os jogadores.');return;}
+  const prompt=`START/SIT — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nJogadores: ${players}\nMatchup: ${ctx||'—'}${getRkCtx(players)}`;
+  const ans=await callAI(prompt,'ss-resp');
+  addHist('fb','Start/Sit',players,ans);
+}
+async function doWaiver(){
+  const lg=getLg('fb',document.getElementById('wv-lg').value);
+  const add=document.getElementById('wv-add').value;
+  const drop=document.getElementById('wv-drop').value;
+  const ctx=document.getElementById('wv-ctx').value;
+  const sc=document.getElementById('wv-sc').value;
+  if(!add.trim()){alert('Insira o jogador.');return;}
+  const prompt=`WAIVER — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${lg?.type||'redraft'}\nAdicionar: ${add} | Dropar: ${drop||'—'}\nContexto: ${ctx||'—'}${getRkCtx(add+','+drop)}`;
+  const ans=await callAI(prompt,'wv-resp');
+  addHist('fb','Waiver',add,ans);
+}
+async function doTrade(sp){
+  if(sp==='fb'){
+    const lg=getLg('fb',document.getElementById('tr-lg').value);
+    const rec=document.getElementById('tr-rec').value;
+    const give=document.getElementById('tr-give').value;
+    const ctx=document.getElementById('tr-ctx').value;
+    const sc=document.getElementById('tr-sc').value;
+    const type=document.getElementById('tr-type').value;
+    if(!rec||!give){alert('Preencha os dois lados.');return;}
+    const prompt=`TRADE — ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\nRECEBO: ${rec}\nDOU: ${give}\nContexto: ${ctx||'—'}${getRkCtx(rec+','+give)}`;
+    const ans=await callAI(prompt,'tr-resp');
+    addHist('fb','Trade',`${rec} / ${give}`,ans);
+  }else{
+    const lg=getLg('bb',document.getElementById('bb-tr-lg').value);
+    const rec=document.getElementById('bb-tr-rec').value;
+    const give=document.getElementById('bb-tr-give').value;
+    const ctx=document.getElementById('bb-tr-ctx').value;
+    const sc=document.getElementById('bb-tr-sc').value;
+    const type=document.getElementById('bb-tr-type').value;
+    if(!rec||!give){alert('Preencha os dois lados.');return;}
+    const prompt=`TRADE BASKETBALL — ${lg?.name||'?'} | ${sc} | ${type}\nRECEBO: ${rec}\nDOU: ${give}\nContexto: ${ctx||'—'}`;
+    const ans=await callAI(prompt,'bb-tr-resp');
+    addHist('bb','Trade',`${rec} / ${give}`,ans);
+  }
+}
+async function doDraft(sp){
+  if(sp==='fb'){
     const type=document.getElementById('dr-type').value;
-    const scoring=document.getElementById('dr-scoring').value;
+    const sc=document.getElementById('dr-sc').value;
     const teams=document.getElementById('dr-teams').value;
     const pick=document.getElementById('dr-pick').value;
-    const sf=document.getElementById('dr-superflex').value;
-    const te=document.getElementById('dr-teprem').value;
-    const ctx=document.getElementById('dr-context').value;
-    const rankCtx = getRankingsContext('');
-    const prompt = `DRAFT — ${type} | ${scoring.toUpperCase()} | ${teams} times | Pick: ${pick} | Superflex: ${sf==='yes'?'SIM':'NÃO'} | TE Premium: ${te==='yes'?'SIM':'NÃO'}
-Situação: ${ctx||'Draft geral'}${rankCtx}`;
-    const answer = await callAI(prompt,'dr-response');
-    saveToHistory('fb','Draft',prompt,answer);
-  } else {
+    const sf=document.getElementById('dr-sf').value;
+    const te=document.getElementById('dr-te').value;
+    const ctx=document.getElementById('dr-ctx').value;
+    const prompt=`DRAFT — ${type} | ${sc.toUpperCase()} | ${teams} times | Pick: ${pick} | ${sf==='yes'?'Superflex':'1QB'} | TE Premium: ${te==='yes'?'SIM':'NÃO'}\n${ctx||'Draft geral'}${getRkCtx('')}`;
+    const ans=await callAI(prompt,'dr-resp');
+    addHist('fb','Draft',`Pick ${pick} - ${type}`,ans);
+  }else{
     const type=document.getElementById('bb-dr-type').value;
-    const scoring=document.getElementById('bb-dr-scoring').value;
+    const sc=document.getElementById('bb-dr-sc').value;
     const teams=document.getElementById('bb-dr-teams').value;
     const pick=document.getElementById('bb-dr-pick').value;
-    const ctx=document.getElementById('bb-dr-context').value;
-    const prompt = `DRAFT BASKETBALL — ${type} | ${scoring} | ${teams} times | Pick: ${pick}
-Situação: ${ctx||'Draft geral'}`;
-    const answer = await callAI(prompt,'bb-dr-response');
-    saveToHistory('bb','Draft',prompt,answer);
+    const ctx=document.getElementById('bb-dr-ctx').value;
+    const prompt=`DRAFT BASKETBALL — ${type} | ${sc} | ${teams} times | Pick: ${pick}\n${ctx||'Draft geral'}`;
+    const ans=await callAI(prompt,'bb-dr-resp');
+    addHist('bb','Draft',`Pick ${pick} - ${type}`,ans);
   }
 }
-
-async function analyzeFreeFb() {
-  const league=getLeagueById('fb',document.getElementById('an-league-fb').value);
-  const q=document.getElementById('an-question-fb').value.trim();
-  const scoring=document.getElementById('an-scoring-fb').value;
-  const type=document.getElementById('an-type-fb').value;
-  if (!q) { alert('Descreva a situação.'); return; }
-  const rankCtx = getRankingsContext(q);
-  const prompt = `Liga: ${league?.name||'?'} | ${scoring.toUpperCase()} | ${type}\n\n${q}${rankCtx}`;
-  const answer = await callAI(prompt,'an-response-fb');
-  saveToHistory('fb','Análise livre',q,answer);
+async function doFreeAI(sp){
+  if(sp==='fb'){
+    const lg=getLg('fb',document.getElementById('ia-fb-lg').value);
+    const q=document.getElementById('ia-fb-q').value.trim();
+    const sc=document.getElementById('ia-fb-sc').value;
+    const type=document.getElementById('ia-fb-type').value;
+    if(!q){alert('Descreva a situação.');return;}
+    const ans=await callAI(`Liga: ${lg?.name||'?'} | ${sc.toUpperCase()} | ${type}\n\n${q}${getRkCtx(q)}`,'ia-fb-resp');
+    addHist('fb','Análise livre',q,ans);
+  }else{
+    const lg=getLg('bb',document.getElementById('ia-bb-lg').value);
+    const q=document.getElementById('ia-bb-q').value.trim();
+    const sc=document.getElementById('ia-bb-sc').value;
+    if(!q){alert('Descreva a situação.');return;}
+    const ans=await callAI(`Liga: ${lg?.name||'?'} | ${sc}\n\n${q}`,'ia-bb-resp');
+    addHist('bb','Análise livre',q,ans);
+  }
 }
-
-async function analyzeFreeBb() {
-  const league=getLeagueById('bb',document.getElementById('an-league-bb').value);
-  const q=document.getElementById('an-question-bb').value.trim();
-  const scoring=document.getElementById('an-scoring-bb').value;
-  if (!q) { alert('Descreva a situação.'); return; }
-  const prompt = `Liga: ${league?.name||'?'} | ${scoring}\n\n${q}`;
-  const answer = await callAI(prompt,'an-response-bb');
-  saveToHistory('bb','Análise livre',q,answer);
-}
-
-async function analyzeBBStartSit() {
-  const league=getLeagueById('bb',document.getElementById('bb-ss-league').value);
+async function doBBStartSit(){
+  const lg=getLg('bb',document.getElementById('bb-ss-lg').value);
   const players=document.getElementById('bb-ss-players').value;
-  const ctx=document.getElementById('bb-ss-context').value;
-  const scoring=document.getElementById('bb-ss-scoring').value;
-  if (!players.trim()) { alert('Insira os jogadores.'); return; }
-  const prompt = `START/SIT BASKETBALL — ${league?.name||'?'} | ${scoring}
-Jogadores: ${players} | Contexto: ${ctx||'—'}`;
-  const answer = await callAI(prompt,'bb-ss-response');
-  saveToHistory('bb','Start/Sit',prompt,answer);
+  const ctx=document.getElementById('bb-ss-ctx').value;
+  const sc=document.getElementById('bb-ss-sc').value;
+  if(!players.trim()){alert('Insira os jogadores.');return;}
+  const ans=await callAI(`START/SIT BASKETBALL — ${lg?.name||'?'} | ${sc}\nJogadores: ${players}\nContexto: ${ctx||'—'}`,'bb-ss-resp');
+  addHist('bb','Start/Sit',players,ans);
 }
-
-async function analyzeBBWaiver() {
-  const league=getLeagueById('bb',document.getElementById('bb-wav-league').value);
-  const add=document.getElementById('bb-wav-add').value;
-  const drop=document.getElementById('bb-wav-drop').value;
-  const ctx=document.getElementById('bb-wav-context').value;
-  const scoring=document.getElementById('bb-wav-scoring').value;
-  if (!add.trim()) { alert('Insira o jogador.'); return; }
-  const prompt = `WAIVER BASKETBALL — ${league?.name||'?'} | ${scoring}
-Adicionar: ${add} | Dropar: ${drop||'—'} | Estratégia: ${ctx||'—'}`;
-  const answer = await callAI(prompt,'bb-wav-response');
-  saveToHistory('bb','Waiver',prompt,answer);
+async function doBBWaiver(){
+  const lg=getLg('bb',document.getElementById('bb-wv-lg').value);
+  const add=document.getElementById('bb-wv-add').value;
+  const drop=document.getElementById('bb-wv-drop').value;
+  const ctx=document.getElementById('bb-wv-ctx').value;
+  const sc=document.getElementById('bb-wv-sc').value;
+  if(!add.trim()){alert('Insira o jogador.');return;}
+  const ans=await callAI(`WAIVER BASKETBALL — ${lg?.name||'?'} | ${sc}\nAdicionar: ${add} | Dropar: ${drop||'—'}\nEstratégia: ${ctx||'—'}`,'bb-wv-resp');
+  addHist('bb','Waiver',add,ans);
 }
 </script>
 </body>
