@@ -868,18 +868,9 @@ async function fetchSleeperLeagues() {
 async function fetchFleaflickerLeagues() {
   const elFb = document.getElementById('ffl-fetch-status');
   const elBb = document.getElementById('ffl-bb-fetch-status');
-  try {
-    const [nflRes, nbaRes] = await Promise.all([
-      fetch(`${FFL_BASE}/FetchUserLeagues?sport=NFL&user_id=${FFL_USER_ID}`),
-      fetch(`${FFL_BASE}/FetchUserLeagues?sport=NBA&user_id=${FFL_USER_ID}`)
-    ]);
-    const nflData = await nflRes.json();
-    const nbaData = await nbaRes.json();
-    (nflData.leagues||[]).forEach(l => {
-      const lg = { id:'ffl_nfl_'+l.id, ffl_id:l.id, ffl_team_id:l.owned_team?.id,
-        name:l.name, platform:'fleaflicker', sport:'nfl',
-        type: (l.name||'').toLowerCase().includes('dynasty')?'dynasty':'redraft',
-        scoring:'unknown', teams:null };
+  if (elFb) { elFb.textContent='Fleaflicker NFL: 3 ligas dynasty pré-cadastradas ✓'; elFb.parentElement.style.borderColor='#22c55e'; elFb.parentElement.querySelector('.spinner').style.display='none'; }
+  if (elBb) { elBb.textContent='Fleaflicker NBA: liga dynasty pré-cadastrada ✓'; elBb.parentElement.style.borderColor='#22c55e'; elBb.parentElement.querySelector('.spinner').style.display='none'; }
+};
       if (!state.fb.leagues.find(x=>x.id===lg.id)) state.fb.leagues.push(lg);
     });
     (nbaData.leagues||[]).forEach(l => {
